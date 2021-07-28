@@ -81,8 +81,8 @@ const float INCH_PER_MM = (0.0393701f);
 
 #define set_bits(target, mask) (target) |= (mask)
 #define clear_bits(target, mask) (target) &= ~(mask)
-#define bits_are_true(target, mask) ((target & mask) != 0)
-#define bits_are_false(target, mask) ((target & mask) == 0)
+#define bits_are_true(target, mask) ((target & (mask)) != 0)
+#define bits_are_false(target, mask) ((target & (mask)) == 0)
 #define set_bitnum(target, num) (target) |= bitnum_to_mask(num)
 #define clear_bitnum(target, num) (target) &= ~bitnum_to_mask(num)
 #define bitnum_is_true(target, num) ((target & bitnum_to_mask(num)) != 0)

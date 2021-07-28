@@ -31,16 +31,13 @@
 
 #include <cstdint>
 
-const int HOMING_CYCLE_ALL         = 0;  // Must be zero.
-const int HOMING_CYCLE_LINE_NUMBER = 0;
-
 // Initialize the limits module
 void limits_init();
 
 // Returns limit state
-AxisMask limits_get_state();
+MotorMask limits_get_state();
 
-void limits_run_homing_cycles(AxisMask axis_mask);
+void homing_run_cycles(AxisMask axis_mask);
 
 // Check for soft limit violations
 void limits_soft_check(float* target);

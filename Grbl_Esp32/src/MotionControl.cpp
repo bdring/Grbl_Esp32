@@ -25,12 +25,13 @@
 #include "MotionControl.h"
 
 #include "Machine/MachineConfig.h"
-#include "Limits.h"    // limits_soft_check
-#include "Protocol.h"  // protocol_execute_realtime
-#include "Report.h"    // CLIENT_*
-#include "Planner.h"   // plan_reset, etc
-#include "I2SOut.h"    // i2s_out_reset
-#include "Platform.h"  // WEAK_LINK
+#include "Machine/Homing.h"  // run_cycles
+#include "Limits.h"          // limits_soft_check
+#include "Protocol.h"        // protocol_execute_realtime
+#include "Report.h"          // CLIENT_*
+#include "Planner.h"         // plan_reset, etc
+#include "I2SOut.h"          // i2s_out_reset
+#include "Platform.h"        // WEAK_LINK
 
 // M_PI is not defined in standard C/C++ but some compilers
 // support it anyway.  The following suppresses Intellisense
@@ -293,7 +294,7 @@ void mc_homing_cycle(AxisMask axis_mask) {
     }
 
     // Might set an alarm; if so protocol_execute_realtime will handle it
-    limits_run_homing_cycles(axis_mask);
+    Machine::Homing::run_cycles(axis_mask);
 
     protocol_execute_realtime();  // Check for reset and set system abort.
     if (sys.abort) {

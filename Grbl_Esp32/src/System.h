@@ -70,9 +70,10 @@ union Suspend {
     SuspendBits bit;
 };
 
-typedef uint8_t AxisMask;  // Bits indexed by axis number
-typedef uint8_t Percent;   // Integer percent
-typedef uint8_t Counter;   // Report interval
+typedef uint32_t MotorMask;  // Bits indexed by gang*16 + axis
+typedef uint16_t AxisMask;   // Bits indexed by axis number
+typedef uint8_t  Percent;    // Integer percent
+typedef uint8_t  Counter;    // Report interval
 
 enum class Override : uint8_t {
     ParkingMotion = 0,  // M56 (Default: Must be zero)
@@ -99,7 +100,6 @@ struct system_t {
     bool           soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
     StepControl    step_control;        // Governs the step segment generator depending on system state.
     bool           probe_succeeded;     // Tracks if last probing cycle was successful.
-    AxisMask       homing_axis_lock;    // Locks axes when limits engage. Used as an axis motion mask in the stepper ISR.
     Percent        f_override;          // Feed rate override value in percent
     Percent        r_override;          // Rapids override value in percent
     Percent        spindle_speed_ovr;   // Spindle speed value in percent

@@ -16,8 +16,6 @@ axes:
   shared_stepper_disable: gpio.13:high
   
   x:
-    steps_per_mm: 1500
-    max_rate: 50000
     steps_per_mm: 800
     max_rate: 5000
     acceleration: 100

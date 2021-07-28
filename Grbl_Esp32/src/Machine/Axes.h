@@ -33,17 +33,17 @@ namespace Machine {
 
         // During homing, this is used to stop stepping on motors that have
         // reached their limit switches, by clearing bits in the mask.
-        uint32_t _motorLockoutMask = 0;
+        MotorMask _motorLockoutMask = 0;
 
     public:
         Axes();
 
         // Bitmasks to collect information about axes that have limits and homing
-        static uint32_t posLimitMask;
-        static uint32_t negLimitMask;
-        static uint32_t homingMask;
-        static uint32_t limitMask;
-        static uint32_t motorMask;
+        static MotorMask posLimitMask;
+        static MotorMask negLimitMask;
+        static MotorMask homingMask;
+        static MotorMask limitMask;
+        static MotorMask motorMask;
 
         inline char axisName(int index) { return index < MAX_N_AXIS ? _names[index] : '?'; }
 
@@ -89,9 +89,9 @@ namespace Machine {
 
         // These are used during homing cycles.
         // The return value is a bitmask of axes that can home
-        uint32_t set_homing_mode(uint8_t homing_mask, bool isHoming);
-        void     release_all_motors();
-        void     stop_motors(uint32_t motor_mask);
+        MotorMask set_homing_mode(AxisMask homing_mask, bool isHoming);
+        void      release_all_motors();
+        void      stop_motors(MotorMask motor_mask);
 
         void set_disable(int axis, bool disable);
         void set_disable(bool disable);

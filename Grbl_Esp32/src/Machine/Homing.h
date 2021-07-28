@@ -19,11 +19,23 @@
 */
 
 #include "../Configuration/Configurable.h"
+#include "../System.h"  // AxisMask, MotorMask
 
 namespace Machine {
     class Homing : public Configuration::Configurable {
+        static uint32_t  plan_move(MotorMask motors, bool approach, bool seek);
+        static void      run(MotorMask remainingMotors, bool approach, bool seek);
+        static bool      squaredOneSwitch(MotorMask motors);
+        static void      set_mpos(AxisMask axisMask);
+        static void      run_one_cycle(AxisMask axisMask);
+        static const int REPORT_LINE_NUMBER = 0;
+
     public:
         Homing() = default;
+
+        static const int AllCycles = 0;  // Must be zero.
+
+        static void run_cycles(AxisMask axisMask);
 
         // The homing cycles are 1,2,3 etc.  0 means not homed as part of home-all,
         // but you can still home it manually with e.g. $HA

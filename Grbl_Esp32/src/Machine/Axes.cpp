@@ -8,11 +8,11 @@
 #include "MachineConfig.h"  // config->
 
 namespace Machine {
-    uint32_t Axes::posLimitMask = 0;
-    uint32_t Axes::negLimitMask = 0;
-    uint32_t Axes::homingMask   = 0;
-    uint32_t Axes::limitMask    = 0;
-    uint32_t Axes::motorMask    = 0;
+    MotorMask Axes::posLimitMask = 0;
+    MotorMask Axes::negLimitMask = 0;
+    MotorMask Axes::homingMask   = 0;
+    MotorMask Axes::limitMask    = 0;
+    MotorMask Axes::motorMask    = 0;
 
     Axes::Axes() : _axis() {
         for (int i = 0; i < MAX_N_AXIS; ++i) {
@@ -78,25 +78,20 @@ namespace Machine {
         }
     }
 
-    // use this to tell all the motors what the current homing mode is
-    // They can use this to setup things like Stall
-    uint32_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    // Put the motors in the given axes into homing mode, returning a
+    // mask of which motors (considering gangs) can do homing.
+    MotorMask Axes::set_homing_mode(AxisMask homing_mask, bool isHoming) {
         release_all_motors();  // On homing transitions, cancel all motor lockouts
-        uint8_t can_home = 0;
+        MotorMask can_home = 0;
 
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
             if (bitnum_is_true(homing_mask, axis)) {
                 auto a = _axis[axis];
                 if (a != nullptr) {
-                    auto motor = a->_gangs[0]->_motor;
-
-                    if (motor->set_homing_mode(isHoming)) {
-                        set_bitnum(can_home, axis);
-                    }
-
-                    for (uint8_t gang_index = 1; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-                        auto a2 = _axis[axis]->_gangs[gang_index]->_motor;
-                        a2->set_homing_mode(isHoming);
+                    for (uint8_t gang = 0; gang < Axis::MAX_NUMBER_GANGED; gang++) {
+                        if (a->_gangs[gang]->_motor->set_homing_mode(isHoming)) {
+                            set_bitnum(can_home, gang * 16 + axis);
+                        }
                     }
                 }
             }
@@ -106,7 +101,7 @@ namespace Machine {
     }
 
     void Axes::release_all_motors() { _motorLockoutMask = 0xffffffff; }
-    void Axes::stop_motors(uint32_t mask) { clear_bits(_motorLockoutMask, mask); }
+    void Axes::stop_motors(MotorMask mask) { clear_bits(_motorLockoutMask, mask); }
 
     void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
         auto n_axis = _numberAxis;
