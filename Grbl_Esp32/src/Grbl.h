@@ -25,8 +25,6 @@
 const char* const GRBL_VERSION       = "2.1a";
 const char* const GRBL_VERSION_BUILD = "20210326";
 
-#include <cstdint>
-
 void grbl_init();
 void run_once();
 
