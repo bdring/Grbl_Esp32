@@ -18,10 +18,9 @@
 
 #include "DebugPinDetail.h"
 
-#include "../Grbl.h"  // for printf
 #include "../Uart.h"
-#include <Arduino.h>  // for timer
-#include <cstdio>     // vsnprintf
+#include <esp32-hal.h>  // millis()
+#include <cstdio>       // vsnprintf
 #include <cstdarg>
 
 namespace Pins {

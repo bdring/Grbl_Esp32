@@ -16,7 +16,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <Arduino.h>  // IRAM_ATTR
+#include <esp_attr.h>  // IRAM_ATTR
 #include "VoidPinDetail.h"
 
 namespace Pins {

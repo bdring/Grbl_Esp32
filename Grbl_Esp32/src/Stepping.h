@@ -19,6 +19,7 @@
 */
 
 #include "Configuration/Configurable.h"
+#include <esp32-hal-timer.h>  // hw_timer_t
 
 namespace Machine {
     class Stepping : public Configuration::Configurable {

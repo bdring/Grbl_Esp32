@@ -162,7 +162,7 @@ void displayDRO() {
         display.drawString(60, oled_y_pos, axisVal);
 
         if (bitnum_is_true(limitAxes, axis)) {  // only draw the box if a switch has been defined
-            draw_checkbox(80, 27 + (axis * 10), 7, 7, limits_check(bit(axis)));
+            draw_checkbox(80, 27 + (axis * 10), 7, 7, limits_check(bitnum_to_mask(axis)));
         }
     }
 

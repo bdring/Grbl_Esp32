@@ -45,8 +45,8 @@
 
 // Define status reporting boolean enable bit flags in status_report_mask
 enum RtStatus {
-    Position = bit(0),
-    Buffer   = bit(1),
+    Position = bitnum_to_mask(0),
+    Buffer   = bitnum_to_mask(1),
 };
 
 const char* errorString(Error errorNumber);

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../Grbl.h"
-
+#include "../Config.h"
 #include "Assert.h"
 #include "../Configuration/GenericFactory.h"
 #include "../Configuration/HandlerBase.h"

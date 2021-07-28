@@ -27,7 +27,9 @@
 #include "Dynamixel2.h"
 
 #include "../Machine/MachineConfig.h"
-#include "../Limits.h"  // limitsMinPosition
+#include "../Limits.h"     // limitsMinPosition
+#include "../NutsBolts.h"  // map(), mapConstrain()
+#include "../Planner.h"    // plan_sync_position()
 
 #include <cstdarg>
 
@@ -190,10 +192,10 @@ namespace Motors {
 
             auto axis = config->_axes->_axis[_axis_index];
 
-            int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis->_stepsPerMm);
-            int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis->_stepsPerMm);
+            uint32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis->_stepsPerMm);
+            uint32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis->_stepsPerMm);
 
-            int32_t temp = map(dxl_position, _countMin, _countMax, pos_min_steps, pos_max_steps);
+            uint32_t temp = myMap(dxl_position, _countMin, _countMax, pos_min_steps, pos_max_steps);
 
             sys_position[_axis_index] = temp;
 
@@ -326,8 +328,8 @@ namespace Motors {
                     }
 
                     // map the mm range to the servo range
-                    dxl_position =
-                        +(uint32_t)mapConstrain(mpos[axis], limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
+                    float fpos = dxl_position = static_cast<uint32_t>(
+                        mapConstrain(mpos[axis], limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max));
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data

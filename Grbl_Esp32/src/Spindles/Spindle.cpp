@@ -25,6 +25,7 @@
 #include "Spindle.h"
 
 #include "../System.h"  //sys.spindle_speed_ovr
+#include <esp32-hal.h>  // delay()
 
 Spindles::Spindle* spindle = nullptr;
 

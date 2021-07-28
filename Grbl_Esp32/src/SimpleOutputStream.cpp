@@ -19,6 +19,9 @@
 #include "SimpleOutputStream.h"
 
 #include <cstring>
+#ifdef ESP32
+#    include <stdlib_noniso.h>  // dtostrf()
+#endif
 
 char* SimpleOutputStream::intToBuf(int value, char* dst) {
 #ifdef ESP32

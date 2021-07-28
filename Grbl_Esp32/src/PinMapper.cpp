@@ -2,7 +2,7 @@
 
 #include "Assert.h"
 
-#include <Arduino.h>
+#include <esp32-hal-gpio.h>  // PULLUP, INPUT, OUTPUT
 
 // Pin mapping. Pretty straight forward, it's just a thing that stores pins in an array.
 //

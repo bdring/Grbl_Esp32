@@ -25,29 +25,11 @@
 const char* const GRBL_VERSION       = "2.1a";
 const char* const GRBL_VERSION_BUILD = "20210326";
 
-#include "Planner.h"  // plan_line_data_t
-#include "System.h"   // AxisMask
-
 #include <cstdint>
 
 void grbl_init();
 void run_once();
 
-// Weak definitions that can be overridden
+// Callouts to custom code
 void machine_init();
 void display_init();
-bool user_defined_homing(AxisMask cycle_mask);
-
-// weak definitions in MotionControl.cpp
-bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
-bool kinematics_pre_homing(AxisMask cycle_mask);
-void kinematics_post_homing();
-
-bool limitsCheckTravel(float* target);  // weak in Limits.cpp; true if out of range
-
-void inverse_kinematics(float* position);  // used to return a converted value
-void forward_kinematics(float* position);
-
-void user_m30();
-
-void user_tool_change(uint8_t new_tool);

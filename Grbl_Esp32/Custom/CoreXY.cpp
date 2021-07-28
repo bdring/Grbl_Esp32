@@ -26,6 +26,8 @@
     Better: http://hypertriangle.com/~alex/delta-robot-tutorial/
 */
 #include "../src/Settings.h"
+#include "../src/MotionControl.h"  // kinematics*
+#include "../src/Limits.h"         // limitsCheckTravel
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
@@ -120,7 +122,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
         mask = motors_set_homing_mode(mask, true);  // non standard homing motors will do their own thing and get removed from the mask
 
         for (uint8_t axis = X_AXIS; axis <= n_axis; axis++) {
-            if (bit(axis) == mask) {
+            if (bitnum_to_mask(axis) == mask) {
                 // setup for the homing of this axis
                 bool  approach       = true;
                 float homing_rate    = config->_homing->_seekRate;
@@ -137,7 +139,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
                         target[idx]       = 0.0;
                     }
 
-                    if (bits_are_true(homing_dir_mask->get(), bit(axis))) {
+                    if (bits_are_true(homing_dir_mask->get(), bitnum_to_mask(axis))) {
                         approach ? target[axis] = -max_travel : target[axis] = max_travel;
                     } else {
                         approach ? target[axis] = max_travel : target[axis] = -max_travel;
@@ -159,7 +161,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
 
                     do {
                         if (approach) {
-                            switch_touched = limits_check(bit(axis));
+                            switch_touched = limits_check(bitnum_to_mask(axis));
                         }
                         st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
                         // Exit routines: No time to run protocol_execute_realtime() in this loop.

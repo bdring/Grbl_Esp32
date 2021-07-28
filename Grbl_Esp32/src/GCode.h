@@ -221,14 +221,14 @@ enum class GCUpdatePos : uint8_t {
 // GCode parser flags for handling special cases.
 enum GCParserFlags {
     GCParserNone           = 0,  // Must be zero.
-    GCParserJogMotion      = bit(0),
-    GCParserCheckMantissa  = bit(1),
-    GCParserArcIsClockwise = bit(2),
-    GCParserProbeIsAway    = bit(3),
-    GCParserProbeIsNoError = bit(4),
-    GCParserLaserForceSync = bit(5),
-    GCParserLaserDisable   = bit(6),
-    GCParserLaserIsMotion  = bit(7),
+    GCParserJogMotion      = bitnum_to_mask(0),
+    GCParserCheckMantissa  = bitnum_to_mask(1),
+    GCParserArcIsClockwise = bitnum_to_mask(2),
+    GCParserProbeIsAway    = bitnum_to_mask(3),
+    GCParserProbeIsNoError = bitnum_to_mask(4),
+    GCParserLaserForceSync = bitnum_to_mask(5),
+    GCParserLaserDisable   = bitnum_to_mask(6),
+    GCParserLaserIsMotion  = bitnum_to_mask(7),
 };
 
 // Various places in the code access saved coordinate system data
@@ -332,3 +332,6 @@ Error gc_execute_line(char* line, uint8_t client);
 
 // Set g-code parser position. Input in steps.
 void gc_sync_position();
+
+void user_tool_change(uint8_t new_tool);
+void user_m30();

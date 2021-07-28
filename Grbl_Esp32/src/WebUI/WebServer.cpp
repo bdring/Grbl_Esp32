@@ -18,7 +18,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "../Grbl.h"
 #include "../Machine/MachineConfig.h"
 #include "../Config.h"
 #include "../Serial.h"  // is_realtime_command()

@@ -23,7 +23,7 @@
 */
 #include "DacSpindle.h"
 
-#include <driver/dac.h>  // dacWrite
+#include <esp32-hal-dac.h>  // dacWrite
 
 namespace Spindles {
     // ======================================== Dac ======================================

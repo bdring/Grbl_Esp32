@@ -16,7 +16,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <Arduino.h>
+#include <esp_attr.h>  // IRAM_ATTR
+#include <esp32-hal-gpio.h>
 #include <stdexcept>
 
 #include "GPIOPinDetail.h"

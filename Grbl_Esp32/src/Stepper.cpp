@@ -29,7 +29,7 @@
 #include "Stepping.h"
 #include "StepperPrivate.h"
 #include "Planner.h"
-#include <Arduino.h>  // IRAM_ATTR
+#include <esp_attr.h>  // IRAM_ATTR
 
 using namespace Stepper;
 

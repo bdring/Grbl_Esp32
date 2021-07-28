@@ -27,8 +27,9 @@
 #include "10vSpindle.h"
 
 #include "../Pins/Ledc.h"
-#include "../System.h"  // sys.spindle_speed
-#include "../GCode.h"   // gc_state.modal
+#include "../System.h"       // sys.spindle_speed
+#include "../GCode.h"        // gc_state.modal
+#include <esp32-hal-ledc.h>  // ledcDetachPin
 
 namespace Spindles {
     void _10v::init() {

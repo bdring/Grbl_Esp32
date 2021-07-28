@@ -25,6 +25,7 @@
 #include "../GCode.h"   // gc_state.modal
 #include "../Logging.h"
 #include "../Pins/Ledc.h"
+#include <esp32-hal-ledc.h>  // ledcDetachPin
 
 // ======================= PWM ==============================
 /*

@@ -2,8 +2,6 @@
 
 #include "Pin.h"
 
-#include <Arduino.h>  // IRAM_ATTR
-
 class ControlPin {
 private:
     bool           _value;
@@ -11,7 +9,7 @@ private:
     volatile bool& _rtVariable;
     const char*    _legend;
 
-    void IRAM_ATTR handleISR();
+    void handleISR();
 
 public:
     ControlPin(volatile bool& rtVariable, const char* legend, char letter) :

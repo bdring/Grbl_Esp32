@@ -29,7 +29,7 @@
 
 #define MACHINE_NAME "MPCNC_V1P1"
 
-#define DEFAULT_HOMING_SQUARED_AXES (bit(X_AXIS) | bit(Y_AXIS))
+#define DEFAULT_HOMING_SQUARED_AXES (bitnum_to_mask(X_AXIS) | bitnum_to_mask(Y_AXIS))
 
 #define X_STEP_PIN      "gpio.12"
 #define X2_STEP_PIN     "gpio.22"  // ganged motor

@@ -19,7 +19,7 @@
 
 #include "UnipolarMotor.h"
 
-#include <Arduino.h>  // IRAM_ATTR
+#include <esp_attr.h>  // IRAM_ATTR
 
 namespace Motors {
     void UnipolarMotor::init() {

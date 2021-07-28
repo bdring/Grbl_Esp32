@@ -14,16 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#        include <Arduino.h>
-#        include <WString.h>
+#    include <WString.h>
 
-#        include "esp_types.h"
-#        include "esp_attr.h"
-#        include "esp_err.h"
-#        include "debug_helpers.h"
-// #include "esp32/rom/ets_sys.h"
-#        include "soc/soc_memory_layout.h"
-#        include "soc/cpu.h"
+#    include "esp_types.h"
+#    include "esp_attr.h"
+#    include "esp_err.h"
+#    include "debug_helpers.h"
+#    include "soc/soc_memory_layout.h"
+#    include "soc/cpu.h"
 
 static inline bool esp_stack_ptr_is_sane(uint32_t sp) {
     return !(sp < 0x3ffae010UL || sp > 0x3ffffff0UL || ((sp & 0xf) != 0));

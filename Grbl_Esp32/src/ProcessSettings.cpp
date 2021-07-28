@@ -291,22 +291,22 @@ Error home_all(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::
     return home(HOMING_CYCLE_ALL);
 }
 Error home_x(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(bit(X_AXIS));
+    return home(bitnum_to_mask(X_AXIS));
 }
 Error home_y(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(bit(Y_AXIS));
+    return home(bitnum_to_mask(Y_AXIS));
 }
 Error home_z(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(bit(Z_AXIS));
+    return home(bitnum_to_mask(Z_AXIS));
 }
 Error home_a(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(bit(A_AXIS));
+    return home(bitnum_to_mask(A_AXIS));
 }
 Error home_b(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(bit(B_AXIS));
+    return home(bitnum_to_mask(B_AXIS));
 }
 Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(bit(C_AXIS));
+    return home(bitnum_to_mask(C_AXIS));
 }
 void write_limit_set(uint32_t mask) {
     const char* gang0AxisName = "xyzabc";

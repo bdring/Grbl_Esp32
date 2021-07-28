@@ -23,7 +23,6 @@
 
 #include "../Spindles/NullSpindle.h"
 
-#include "../Grbl.h"
 #include "../Logging.h"
 
 #include "../Configuration/Parser.h"

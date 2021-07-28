@@ -23,7 +23,7 @@
 
 #include "../System.h"  // sys.spindle_speed
 
-#include <Arduino.h>  // IRAM_ATTR
+#include <esp_attr.h>  // IRAM_ATTR
 
 namespace Spindles {
     // ======================= Null ==============================

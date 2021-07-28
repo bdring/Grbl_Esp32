@@ -56,5 +56,5 @@ AxisMask limits_check(AxisMask check_mask);
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);
 
-// Internal factor used by limits_soft_check
 bool limitsCheckTravel(float* target);
+bool user_defined_homing(AxisMask cycle_mask);

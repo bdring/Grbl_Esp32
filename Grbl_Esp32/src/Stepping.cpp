@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "I2SOut.h"
 #include "EnumItem.h"
 #include "Stepping.h"

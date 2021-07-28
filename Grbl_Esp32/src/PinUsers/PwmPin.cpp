@@ -22,7 +22,7 @@
 #include "../Pin.h"
 #include "../Assert.h"
 
-#include <Arduino.h>
+#include <esp32-hal-ledc.h>  // ledc*
 
 namespace PinUsers {
     class NativePwm : public PwmDetail {

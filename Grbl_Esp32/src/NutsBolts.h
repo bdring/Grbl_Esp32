@@ -74,21 +74,19 @@ const float INCH_PER_MM = (0.0393701f);
 #define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * MAX_N_AXIS))
 
 // Bit field and masking macros
-// bit(n) is defined in Arduino.h.  We redefine it here so we can apply
-// the static_cast, thus making it work with scoped enums
-#ifdef bit
-#    undef bit
-#endif
-#define bit(n) (1 << static_cast<unsigned int>(n))
+// bitnum_to_mask(n) is similar to bit(n) as defined in Arduino.h.
+// We define our own version so we can apply the static_cast, thus making it work with scoped enums,
+// using a different name to avoid name conflicts and include ordering issues with Arduino.h
+#define bitnum_to_mask(n) (1 << static_cast<unsigned int>(n))
 
 #define set_bits(target, mask) (target) |= (mask)
 #define clear_bits(target, mask) (target) &= ~(mask)
 #define bits_are_true(target, mask) ((target & mask) != 0)
 #define bits_are_false(target, mask) ((target & mask) == 0)
-#define set_bitnum(target, num) (target) |= bit(num)
-#define clear_bitnum(target, num) (target) &= ~bit(num)
-#define bitnum_is_true(target, num) ((target & bit(num)) != 0)
-#define bitnum_is_false(target, num) ((target & bit(num)) == 0)
+#define set_bitnum(target, num) (target) |= bitnum_to_mask(num)
+#define clear_bitnum(target, num) (target) &= ~bitnum_to_mask(num)
+#define bitnum_is_true(target, num) ((target & bitnum_to_mask(num)) != 0)
+#define bitnum_is_false(target, num) ((target & bitnum_to_mask(num)) == 0)
 
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
@@ -111,9 +109,6 @@ float convert_delta_vector_to_unit_vector(float* vector);
 float limit_acceleration_by_axis_maximum(float* unit_vec);
 float limit_rate_by_axis_maximum(float* unit_vec);
 
-float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
-float map_float(float x, float in_min, float in_max, float out_min, float out_max);
-float constrain_float(float in, float min, float max);
 bool  char_is_numeric(char value);
 char* trim(char* value);
 
@@ -157,4 +152,26 @@ inline void IRAM_ATTR spinUntil(int32_t endTicks) {
 
 inline void IRAM_ATTR delay_us(int32_t us) {
     spinUntil(usToEndTicks(us));
+}
+
+template <typename T>
+T myMap(T x, T in_min, T in_max, T out_min, T out_max) {  // DrawBot_Badge
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+template <typename T>
+T myConstrain(T in, T min, T max) {
+    if (in < min) {
+        return min;
+    }
+    if (in > max) {
+        return max;
+    }
+    return in;
+}
+
+template <typename T>
+T mapConstrain(T x, T in_min, T in_max, T out_min, T out_max) {
+    x = myConstrain(x, in_min, in_max);
+    return myMap(x, in_min, in_max, out_min, out_max);
 }

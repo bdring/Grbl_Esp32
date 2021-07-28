@@ -18,6 +18,10 @@
 */
 
 #include "UserOutput.h"
+#include "Logging.h"         // log_*
+#include "System.h"          // sys_get_next_PWM_chan_num()
+#include <esp32-hal-ledc.h>  // ledc*
+#include <esp32-hal-cpu.h>   // getApbFrequency()
 
 namespace UserOutput {
     DigitalOutput::DigitalOutput(uint8_t number, Pin& pin) : _number(number), _pin(pin) {

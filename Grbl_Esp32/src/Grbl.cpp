@@ -39,7 +39,6 @@
 #    include <WiFi.h>
 #endif
 #include <SPIFFS.h>
-#include <Arduino.h>  // sleep
 
 extern void make_grbl_commands();
 
@@ -208,12 +207,6 @@ void run_once() {
 void WEAK_LINK machine_init() {}
 
 void WEAK_LINK display_init() {}
-
-void WEAK_LINK user_m30() {}
-
-void WEAK_LINK user_tool_change(uint8_t new_tool) {
-    Spindles::Spindle::switchSpindle(new_tool, config->_spindles, spindle);
-}
 
 /*
   setup() and loop() in the Arduino .ino implements this control flow:

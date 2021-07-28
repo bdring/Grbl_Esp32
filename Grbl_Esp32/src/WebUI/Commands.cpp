@@ -18,6 +18,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "Commands.h"
+#include <esp32-hal.h>  // millis()
+#include <Esp.h>        // ESP.restart()
 
 #include "Authentication.h"  // MAX_LOCAL_PASSWORD_LENGTH
 

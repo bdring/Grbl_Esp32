@@ -1,7 +1,8 @@
 #include "ControlPin.h"
 
-#include "Report.h"   // addPinReport
-#include <Arduino.h>  // IRAM_ATTR
+#include "Report.h"          // addPinReport
+#include <esp_attr.h>        // IRAM_ATTR
+#include <esp32-hal-gpio.h>  // CHANGE
 
 void IRAM_ATTR ControlPin::handleISR() {
     bool pinState = _pin.read();

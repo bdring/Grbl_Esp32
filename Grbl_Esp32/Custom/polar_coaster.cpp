@@ -50,6 +50,8 @@
 
 */
 
+#include "../src/MotionControl.h"  // kinematics_*
+
 // This file is enabled by defining CUSTOM_CODE_FILENAME "polar_coaster.cpp"
 // in Machines/polar_coaster.h, thus causing this file to be included
 // from ../custom_code.cpp

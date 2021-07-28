@@ -24,7 +24,7 @@
 
 #define MACHINE_NAME "LOWRIDER YYZZX V1P2 "
 
-#define DEFAULT_HOMING_SQUARED_AXES (bit(Y_AXIS) | bit(Z_AXIS))
+#define DEFAULT_HOMING_SQUARED_AXES (bitnum_to_mask(Y_AXIS) | bitnum_to_mask(Z_AXIS))
 
 #define Y_STEP_PIN          "gpio.12"     // use Y labeled connector
 #define Y_DIRECTION_PIN     "gpio.26"     // use Y labeled connector

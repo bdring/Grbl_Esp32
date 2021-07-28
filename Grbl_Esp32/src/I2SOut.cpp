@@ -50,7 +50,7 @@
 #include "Machine/MachineConfig.h"
 #include "Stepper.h"
 
-#include <Arduino.h>  // IRAM_ATTR
+#include <esp_attr.h>  // IRAM_ATTR
 
 #include <freertos/FreeRTOS.h>
 #include <driver/periph_ctrl.h>
@@ -244,7 +244,7 @@ static int IRAM_ATTR i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) 
 static int IRAM_ATTR i2s_out_gpio_shiftout(uint32_t port_data) {
     __digitalWrite(i2s_out_ws_pin, LOW);
     for (int i = 0; i < I2S_OUT_NUM_BITS; i++) {
-        __digitalWrite(i2s_out_data_pin, !!(port_data & bit(I2S_OUT_NUM_BITS - 1 - i)));
+        __digitalWrite(i2s_out_data_pin, !!(port_data & bitnum_to_mask(I2S_OUT_NUM_BITS - 1 - i)));
         __digitalWrite(i2s_out_bck_pin, HIGH);
         __digitalWrite(i2s_out_bck_pin, LOW);
     }
@@ -558,7 +558,7 @@ void IRAM_ATTR i2s_out_delay() {
 }
 
 void IRAM_ATTR i2s_out_write(uint8_t pin, uint8_t val) {
-    uint32_t bit = bit(pin);
+    uint32_t bit = bitnum_to_mask(pin);
     if (val) {
         atomic_fetch_or(&i2s_out_port_data, bit);
     } else {
@@ -568,7 +568,7 @@ void IRAM_ATTR i2s_out_write(uint8_t pin, uint8_t val) {
 
 uint8_t IRAM_ATTR i2s_out_read(uint8_t pin) {
     uint32_t port_data = atomic_load(&i2s_out_port_data);
-    return (!!(port_data & bit(pin)));
+    return (!!(port_data & bitnum_to_mask(pin)));
 }
 
 uint32_t IRAM_ATTR i2s_out_push_sample(uint32_t usec) {

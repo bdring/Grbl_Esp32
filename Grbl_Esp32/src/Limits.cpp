@@ -41,7 +41,6 @@
 
 #include <freertos/task.h>
 #include <freertos/queue.h>
-#include <Arduino.h>  // IRAM_ATTR
 #include <string.h>   // memset, memcpy
 #include <algorithm>  // min, max
 #include <atomic>     // fence

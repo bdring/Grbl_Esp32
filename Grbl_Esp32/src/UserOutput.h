@@ -19,7 +19,10 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+// #include "Grbl.h"
+
+#include <cstdint>
+#include "Pin.h"
 
 namespace UserOutput {
     const uint8_t UNDEFINED_OUTPUT = 255;

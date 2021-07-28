@@ -30,7 +30,6 @@
 #include "Report.h"    // CLIENT_*
 #include "Planner.h"   // plan_reset, etc
 #include "I2SOut.h"    // i2s_out_reset
-#include "Grbl.h"      // user_defined_homing... Implemented in Limits.
 #include "Platform.h"  // WEAK_LINK
 
 // M_PI is not defined in standard C/C++ but some compilers
@@ -131,7 +130,6 @@ void WEAK_LINK motors_to_cartesian(float* cartesian, float* motors, int n_axis) 
     memcpy(cartesian, motors, n_axis * sizeof(motors[0]));
 }
 
-void WEAK_LINK forward_kinematics(float* position) {}
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,
 // offset == offset from current xyz, axis_X defines circle plane in tool space, axis_linear is
 // the direction of helical travel, radius == circle radius, isclockwise boolean. Used

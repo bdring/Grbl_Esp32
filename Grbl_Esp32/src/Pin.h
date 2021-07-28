@@ -23,7 +23,7 @@
 #include "Pins/PinAttributes.h"
 #include "StringRange.h"
 
-#include <Arduino.h>  // for IRAM_ATTR
+#include <esp_attr.h>  // IRAM_ATTR
 #include <cstdint>
 #include <cstring>
 #include <utility>
@@ -125,7 +125,7 @@ public:
     }
 
     inline IRAM_ATTR void write(bool value) const { _detail->write(value); }
-    inline void synchronousWrite(bool value) const { _detail->synchronousWrite(value); }
+    inline void           synchronousWrite(bool value) const { _detail->synchronousWrite(value); }
 
     inline bool read() const { return _detail->read() != 0; }
 

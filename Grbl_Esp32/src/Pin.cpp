@@ -25,6 +25,7 @@
 #include "Pins/VoidPinDetail.h"
 #include "Pins/I2SOPinDetail.h"
 #include "Pins/ErrorPinDetail.h"
+#include <stdio.h>  // snprintf()
 
 Pins::PinDetail* Pin::undefinedPin = new Pins::VoidPinDetail();
 Pins::PinDetail* Pin::errorPin     = new Pins::ErrorPinDetail("unknown");

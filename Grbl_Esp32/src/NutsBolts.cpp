@@ -194,30 +194,6 @@ float limit_rate_by_axis_maximum(float* unit_vec) {
     return limit_value;
 }
 
-float map_float(float x, float in_min, float in_max, float out_min, float out_max) {  // DrawBot_Badge
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-float constrain_float(float in, float min, float max) {  // DrawBot_Badge
-    if (in < min) {
-        return min;
-    }
-    if (in > max) {
-        return max;
-    }
-    return in;
-}
-
-long mapConstrain(long x, long in_min, long in_max, long out_min, long out_max) {
-    x = constrain(x, in_min, in_max);
-    return map(x, in_min, in_max, out_min, out_max);
-}
-
-float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max) {
-    x = constrain_float(x, in_min, in_max);
-    return map_float(x, in_min, in_max, out_min, out_max);
-}
-
 bool char_is_numeric(char value) {
     return value >= '0' && value <= '9';
 }

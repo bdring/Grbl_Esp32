@@ -27,6 +27,9 @@
 
 #include <soc/ledc_struct.h>
 #include <driver/ledc.h>
+#include <esp32-hal-ledc.h>    // ledcDetachPin
+#include <esp32-hal-matrix.h>  // pinMatrixOutAttach
+#include <esp32-hal-gpio.h>    // OUTPUT
 
 extern "C" void __pinMode(uint8_t pin, uint8_t mode);
 

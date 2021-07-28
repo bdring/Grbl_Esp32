@@ -18,6 +18,7 @@
 
 #include "Gang.h"
 
+#include "../Config.h"
 #include "../Motors/Motor.h"
 #include "../Motors/NullMotor.h"
 #include "Axes.h"

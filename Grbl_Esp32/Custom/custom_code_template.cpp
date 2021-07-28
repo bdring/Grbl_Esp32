@@ -39,6 +39,9 @@ Below are all the current weak function
 
 */
 
+#include "../src/MotionControl.h"  // kinematics_*
+#include "../src/Limits.h"         // limitsCheckTravel
+
 /*
 This function is used as a one time setup for your machine.
 */

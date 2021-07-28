@@ -164,10 +164,10 @@
 //  homing
 #define DEFAULT_HOMING_FEED_RATE    25
 #define DEFAULT_HOMING_SEEK_RATE    100
-#define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS))  // all axes home negative
+#define DEFAULT_HOMING_DIR_MASK     (bitnum_to_mask(X_AXIS) | bitnum_to_mask(Y_AXIS) | bitnum_to_mask(Z_AXIS))  // all axes home negative
 #define DEFAULT_HOMING_ENABLE       1
 #define DEFAULT_INVERT_LIMIT_PINS   0
-#define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS)) 
+#define DEFAULT_HOMING_CYCLE_0      (bitnum_to_mask(X_AXIS) | bitnum_to_mask(Y_AXIS) | bitnum_to_mask(Z_AXIS))
 #define DEFAULT_HOMING_CYCLE_1      0  // override this one in defaults.h
 
 // The machine homes up and above center. MPos is the axis angle in radians

@@ -49,11 +49,11 @@
 #define SPINDLE_TYPE SpindleType::NONE
 
 // defaults
-#define DEFAULT_HOMING_CYCLE_0      bit(Z_AXIS)
-#define DEFAULT_HOMING_CYCLE_1      bit(Y_AXIS)
-#define DEFAULT_HOMING_CYCLE_2      bit(X_AXIS)
+#define DEFAULT_HOMING_CYCLE_0      bitnum_to_mask(Z_AXIS)
+#define DEFAULT_HOMING_CYCLE_1      bitnum_to_mask(Y_AXIS)
+#define DEFAULT_HOMING_CYCLE_2      bitnum_to_mask(X_AXIS)
 
-#define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit (Z_AXIS)) // these home negative
+#define DEFAULT_HOMING_DIR_MASK     (bitnum_to_mask(X_AXIS) | bit (Z_AXIS)) // these home negative
 
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME  255 // stay on

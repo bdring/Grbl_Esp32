@@ -96,8 +96,8 @@ namespace Motors {
         // control modes
         static const int DXL_CONTROL_MODE_POSITION = 3;
 
-        int _countMin = 1024;
-        int _countMax = 3072;
+        uint32_t _countMin = 1024;
+        uint32_t _countMax = 3072;
 
         bool _disabled;
         bool _has_errors;

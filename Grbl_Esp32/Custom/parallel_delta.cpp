@@ -55,6 +55,8 @@
 */
 
 #include "../src/Settings.h"
+#include "../src/MotionControl.h"  // kinematics_*
+#include "../src/Limits.h"         // limitsCheckTravel
 
 enum class KinematicError : uint8_t {
     NONE               = 0,

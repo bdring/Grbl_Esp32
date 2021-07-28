@@ -14,11 +14,11 @@ void settings_init();
 
 // Define settings restore bitflags.
 enum SettingsRestore {
-    Defaults     = bit(0),
-    Parameters   = bit(1),
-    StartupLines = bit(2),
-    // BuildInfo = bit(3), // Obsolete
-    Wifi = bit(4),
+    Defaults     = bitnum_to_mask(0),
+    Parameters   = bitnum_to_mask(1),
+    StartupLines = bitnum_to_mask(2),
+    // BuildInfo = bitnum_to_mask(3), // Obsolete
+    Wifi = bitnum_to_mask(4),
     All  = 0xff,
 };
 

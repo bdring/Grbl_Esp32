@@ -93,7 +93,7 @@
 #define DEFAULT_HOMING_ENABLE 0
 #define DEFAULT_HOMING_DIR_MASK 0
 
-#define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS)) 
+#define DEFAULT_HOMING_CYCLE_0      (bitnum_to_mask(X_AXIS) | bitnum_to_mask(Y_AXIS) | bitnum_to_mask(Z_AXIS)) 
 #define DEFAULT_X_HOMING_MPOS       MAX_NEGATIVE_ANGLE
 #define DEFAULT_Y_HOMING_MPOS       DEFAULT_X_HOMING_MPOS
 #define DEFAULT_Z_HOMING_MPOS       DEFAULT_X_HOMING_MPOS
