@@ -28,6 +28,8 @@ namespace Machine {
             _sharedStepperDisable.report("Shared stepper disable");
         }
 
+        release_all_motors();
+
         // certain motors need features to be turned on. Check them here
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
             auto a = _axis[axis];
@@ -80,24 +82,24 @@ namespace Machine {
 
     // Put the motors in the given axes into homing mode, returning a
     // mask of which motors (considering gangs) can do homing.
-    MotorMask Axes::set_homing_mode(AxisMask homing_mask, bool isHoming) {
+    MotorMask Axes::set_homing_mode(AxisMask axisMask, bool isHoming) {
         release_all_motors();  // On homing transitions, cancel all motor lockouts
-        MotorMask can_home = 0;
+        MotorMask motorsCanHome = 0;
 
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
-            if (bitnum_is_true(homing_mask, axis)) {
+            if (bitnum_is_true(axisMask, axis)) {
                 auto a = _axis[axis];
                 if (a != nullptr) {
                     for (uint8_t gang = 0; gang < Axis::MAX_NUMBER_GANGED; gang++) {
                         if (a->_gangs[gang]->_motor->set_homing_mode(isHoming)) {
-                            set_bitnum(can_home, gang * 16 + axis);
+                            set_bitnum(motorsCanHome, gang * 16 + axis);
                         }
                     }
                 }
             }
         }
 
-        return can_home;
+        return motorsCanHome;
     }
 
     void Axes::release_all_motors() { _motorLockoutMask = 0xffffffff; }

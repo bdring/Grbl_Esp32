@@ -52,7 +52,7 @@ namespace Machine {
         AxisMask axesMask = 0;
         // Find the axis that will take the longest
         for (int axis = 0; axis < n_axis; axis++) {
-            if (bits_are_false(motors, axis | (axis << 16))) {
+            if (bitnum_is_false(motors, axis) && bitnum_is_false(motors, axis + 16)) {
                 continue;
             }
 
@@ -89,10 +89,6 @@ namespace Machine {
                         travel = std::max(travel, axisConfig->_gangs[1]->_endstops->_pulloff);
                     }
                 }
-
-                // We know that endstop is not nullptr because we checked for a
-                // valid endstop configuration before starting to home.
-                travel = endstop->_pulloff;
             }
 
             // First we compute the maximum-time-to-completion vector; later we will
@@ -107,11 +103,11 @@ namespace Machine {
             }
         }
         // Scale the target array, currently in units of time, back to positions
-        // When approaching a small fudge factor to ensure that the limit is reached -
+        // When approaching add a fudge factor (scaler) to ensure that the limit is reached -
         // but no fudge factor when pulling off.
         for (int axis = 0; axis < n_axis; axis++) {
             if (bitnum_is_true(axesMask, axis)) {
-                auto homing = config->_axes->_axis[axis]->_homing;
+                auto homing = axes->_axis[axis]->_homing;
                 auto scaler = approach ? (seek ? homing->_seek_scaler : homing->_feed_scaler) : 1.0;
                 target[axis] *= limitingRate * scaler;
             }
@@ -147,6 +143,8 @@ namespace Machine {
         }
 
         uint32_t settling_ms = plan_move(remainingMotors, approach, seek);
+
+        config->_axes->release_all_motors();
 
         do {
             if (approach) {

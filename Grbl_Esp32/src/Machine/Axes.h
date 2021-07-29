@@ -33,7 +33,7 @@ namespace Machine {
 
         // During homing, this is used to stop stepping on motors that have
         // reached their limit switches, by clearing bits in the mask.
-        MotorMask _motorLockoutMask = 0;
+        MotorMask _motorLockoutMask = 0xffffffff;
 
     public:
         Axes();
