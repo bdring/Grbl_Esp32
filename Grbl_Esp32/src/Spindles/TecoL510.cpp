@@ -29,10 +29,9 @@ namespace Spindles {
         _baudrate = 9600;
         _parity   = Uart::Parity::None;
         // TODO:  should defaults be set here?  What happens if the motor settings in the VFD are wrong or default?
-        /*
         _max_rpm = 24000;
+        _min_rpm = 6000;
         _max_freq = 40000;
-        */
     }
 
     void L510::direction_command(SpindleState mode, ModbusCommand& data) {
@@ -104,6 +103,10 @@ namespace Spindles {
         auto max_rpm = this->_max_rpm;
         auto max_freq = this->_max_freq;
         uint32_t rpm = (freq*max_rpm)/max_freq;
+        if(rpm < 0){
+            // sometimes it returns -1 which causes an alarm
+            rpm = 0;
+        }
         return rpm;
     }
 
