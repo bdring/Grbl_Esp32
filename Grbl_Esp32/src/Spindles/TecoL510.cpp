@@ -29,6 +29,7 @@ namespace Spindles {
         _baudrate = 9600;
         _parity   = Uart::Parity::None;
         // TODO:  should defaults be set here?  What happens if the motor settings in the VFD are wrong or default?
+        // I think they are overloaded with DEFAULT_SPINDLE_RPM_MAX and DEFAULT_SPINDLE_RPM_MIN
         _max_rpm = 24000;
         _min_rpm = 6000;
         _max_freq = 40000;
