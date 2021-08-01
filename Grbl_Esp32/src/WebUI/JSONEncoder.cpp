@@ -144,25 +144,27 @@ namespace WebUI {
 
     // Creates an Esp32_WebUI configuration item specification from
     // a value passed in as a C-style string.
-    void JSONencoder::begin_webui(const char* p, const char* help, const char* type, const char* val) {
+    void JSONencoder::begin_webui(const char* brief, const char* full, const char* type, const char* val) {
         begin_object();
         member("F", "network");
-        member("P", p);
-        member("H", help);
+        // We must pass the full path as the P parameter because that is
+        // what WebUI sends back to us when setting a new value.
+        member("P", full);
+        member("H", full);
         member("T", type);
         member("V", val);
     }
 
     // Creates an Esp32_WebUI configuration item specification from
     // an integer value.
-    void JSONencoder::begin_webui(const char* p, const char* help, const char* type, int val) {
-        begin_webui(p, help, type, String(val).c_str());
+    void JSONencoder::begin_webui(const char* brief, const char* full, const char* type, int val) {
+        begin_webui(brief, full, type, String(val).c_str());
     }
 
     // Creates an Esp32_WebUI configuration item specification from
     // a C-style string value, with additional min and max arguments.
-    void JSONencoder::begin_webui(const char* p, const char* help, const char* type, const char* val, int min, int max) {
-        begin_webui(p, help, type, val);
+    void JSONencoder::begin_webui(const char* brief, const char* full, const char* type, const char* val, int min, int max) {
+        begin_webui(brief, full, type, val);
         member("S", max);
         member("M", min);
     }

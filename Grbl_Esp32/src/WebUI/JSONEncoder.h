@@ -83,8 +83,8 @@ namespace WebUI {
         //  S => 0 .. 255
         //  A => 7 .. 15  (0.0.0.0 .. 255.255.255.255)
         //  I => 0 .. 2^31-1
-        void begin_webui(const char* p, const char* help, const char* type, const char* val);
-        void begin_webui(const char* p, const char* help, const char* type, const int val);
-        void begin_webui(const char* p, const char* help, const char* type, const char* val, int min, int max);
+        void begin_webui(const char* brief, const char* full, const char* type, const char* val);
+        void begin_webui(const char* brief, const char* full, const char* type, const int val);
+        void begin_webui(const char* brief, const char* full, const char* type, const char* val, int min, int max);
     };
 }

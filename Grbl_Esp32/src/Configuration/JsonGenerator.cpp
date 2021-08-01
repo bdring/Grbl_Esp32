@@ -89,8 +89,11 @@ namespace Configuration {
     }
 
     void JsonGenerator::item(const char* name, float& value, float minValue, float maxValue) {
-        int n = int(value * 1000);
-        item(name, n, int(minValue * 1000), int(maxValue * 1000));
+        enter(name);
+        // WebUI does not explicitly recognize the R type, but nevertheless handles it correctly.
+        _encoder.begin_webui(name, _currentPath, "R", String(value, 3).c_str());
+        _encoder.end_object();
+        leave();
     }
 
     void JsonGenerator::item(const char* name, std::vector<speedEntry>& value) {}

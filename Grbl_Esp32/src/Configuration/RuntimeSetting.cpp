@@ -24,8 +24,10 @@
 #include <atomic>
 
 namespace Configuration {
-    RuntimeSetting::RuntimeSetting(const char* key, const char* value, WebUI::ESPResponseStream* out) :
-        setting_(key), start_(key), newValue_(value), out_(out) {
+    RuntimeSetting::RuntimeSetting(const char* key, const char* value, WebUI::ESPResponseStream* out) : newValue_(value), out_(out) {
+        // Remove leading '/' if it is present
+        setting_ = (*key == '/') ? key + 1 : key;
+        start_   = setting_;
         // Read fence for config. Shouldn't be necessary, but better safe than sorry.
         std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);
     }
