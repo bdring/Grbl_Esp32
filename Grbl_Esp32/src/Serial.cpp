@@ -114,7 +114,7 @@ void client_init() {
     // after WebUI attaches.
     xTaskCreatePinnedToCore(clientCheckTask,    // task
                             "clientCheckTask",  // name for task
-                            4096,               // size of task stack
+                            8192,               // size of task stack
                             NULL,               // parameters
                             1,                  // priority
                             &clientCheckTaskHandle,
