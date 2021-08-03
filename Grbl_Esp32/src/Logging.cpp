@@ -17,10 +17,15 @@
 */
 
 #include "Logging.h"
+#include "SettingsDefinitions.h"
 
 #ifndef ESP32
 
 #    include <iostream>
+
+bool atMsgLevel(MsgLevel level) {
+    return message_level == nullptr || message_level->get() >= level;
+}
 
 DebugStream::DebugStream(const char* name) {
     std::cout << "[MSG:" << name << ": ";
@@ -34,8 +39,6 @@ DebugStream::~DebugStream() {
 }
 
 #else
-
-#    include "SettingsDefinitions.h"
 
 bool atMsgLevel(MsgLevel level) {
     return message_level == nullptr || message_level->get() >= level;

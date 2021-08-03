@@ -46,6 +46,12 @@
     <Filter Include="X86TestSupport\soc">
       <UniqueIdentifier>{2fe0b2ec-2f5f-44c9-8e5d-33a53d96d80c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="X86TestSupport\xtensa">
+      <UniqueIdentifier>{65268649-7855-443e-bf8e-984388ea6c17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="X86TestSupport\TMC">
+      <UniqueIdentifier>{52fb1ffd-68a9-4edc-aae1-ca2cdf3e7da9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grbl_Esp32\src\Machine\SPIBus.h">
@@ -270,9 +276,6 @@
     <ClInclude Include="Grbl_Esp32\src\Assert.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="X86TestSupport\TMC\TMCStepper.h">
-      <Filter>X86TestSupport</Filter>
-    </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Spindles\Laser.h">
       <Filter>src\Spindles</Filter>
     </ClInclude>
@@ -299,12 +302,6 @@
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Machine\WifiSTAConfig.h">
       <Filter>src\Machine</Filter>
-    </ClInclude>
-    <ClInclude Include="X86TestSupport\TMC\TMCStepper_UTILITY.h">
-      <Filter>X86TestSupport</Filter>
-    </ClInclude>
-    <ClInclude Include="X86TestSupport\TMCStepper.h">
-      <Filter>X86TestSupport</Filter>
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Error.h">
       <Filter>src</Filter>
@@ -359,9 +356,6 @@
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Jog.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="Grbl_Esp32\src\Pins\Ledc.h">
-      <Filter>src\Pins</Filter>
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Spindles\RelaySpindle.h">
       <Filter>src\Spindles</Filter>
@@ -510,6 +504,48 @@
     <ClInclude Include="Grbl_Esp32\src\Stepping.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="X86TestSupport\esp_attr.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\xtensa\core-macros.h">
+      <Filter>X86TestSupport\xtensa</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\TMC\TMCStepper.h">
+      <Filter>X86TestSupport\TMC</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\TMC\TMCStepper_UTILITY.h">
+      <Filter>X86TestSupport\TMC</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\esp32-hal-gpio.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\esp32-hal.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\esp32-hal-timer.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\esp32-hal-ledc.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\esp32-hal-dac.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\Esp.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\esp32-hal-cpu.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Machine\LimitPin.h">
+      <Filter>src\Machine</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\esp32-hal-matrix.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\LedcPin.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\src\WebUI\JSONEncoder.cpp">
@@ -637,9 +673,6 @@
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\src\WebUI\InputBuffer.cpp">
       <Filter>src\WebUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Grbl_Esp32\src\Pins\Ledc.cpp">
-      <Filter>src\Pins</Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\src\UserOutput.cpp">
       <Filter>src</Filter>
@@ -859,6 +892,34 @@
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\src\Stepping.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Machine\LimitPin.cpp">
+      <Filter>src\Machine</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Machine\Homing.cpp">
+      <Filter>src\Machine</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\LedcPin.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\SDFS.cpp">
+      <Filter>X86TestSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\SPI.cpp">
+      <Filter>X86TestSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\SPIFFS.cpp">
+      <Filter>X86TestSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\I2SO.cpp">
+      <Filter>X86TestSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\soc\ledc_struct.cpp">
+      <Filter>X86TestSupport\soc</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\driver\rmt.cpp" />
+    <ClCompile Include="X86TestSupport\esp32-hal-timer.cpp">
+      <Filter>X86TestSupport</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

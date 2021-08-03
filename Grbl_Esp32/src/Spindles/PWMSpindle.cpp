@@ -24,7 +24,7 @@
 #include "../System.h"  // sys.report_ovr_counter
 #include "../GCode.h"   // gc_state.modal
 #include "../Logging.h"
-#include "../Pins/Ledc.h"
+#include "../Pins/LedcPin.h"
 #include <esp32-hal-ledc.h>  // ledcDetachPin
 
 // ======================= PWM ==============================

@@ -32,7 +32,7 @@
 */
 #include "BESCSpindle.h"
 
-#include "../Pins/Ledc.h"
+#include "../Pins/LedcPin.h"
 
 #include <soc/ledc_struct.h>
 

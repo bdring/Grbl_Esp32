@@ -29,6 +29,7 @@
 #include <soc/dport_reg.h>
 #include <soc/rtc.h>
 #include <driver/uart.h>
+#include <esp32-hal-gpio.h>  // GPIO_NUM_1 etc
 
 Uart::Uart() : _pushback(-1) {
     static int currentNumber = 1;

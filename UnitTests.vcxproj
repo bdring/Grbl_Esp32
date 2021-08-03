@@ -83,6 +83,7 @@
     <ClInclude Include="Grbl_Esp32\src\Machine\Gang.h" />
     <ClInclude Include="Grbl_Esp32\src\Machine\Homing.h" />
     <ClInclude Include="Grbl_Esp32\src\Machine\I2SOBus.h" />
+    <ClInclude Include="Grbl_Esp32\src\Machine\LimitPin.h" />
     <ClInclude Include="Grbl_Esp32\src\Machine\MachineConfig.h" />
     <ClInclude Include="Grbl_Esp32\src\Machine\Macros.h" />
     <ClInclude Include="Grbl_Esp32\src\Machine\SPIBus.h" />
@@ -108,7 +109,7 @@
     <ClInclude Include="Grbl_Esp32\src\Pins\ErrorPinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\GPIOPinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\I2SOPinDetail.h" />
-    <ClInclude Include="Grbl_Esp32\src\Pins\Ledc.h" />
+    <ClInclude Include="Grbl_Esp32\src\Pins\LedcPin.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\PinAttributes.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\PinCapabilities.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\PinDetail.h" />
@@ -172,6 +173,15 @@
     <ClInclude Include="X86TestSupport\driver\ledc.h" />
     <ClInclude Include="X86TestSupport\driver\rmt.h" />
     <ClInclude Include="X86TestSupport\driver\uart.h" />
+    <ClInclude Include="X86TestSupport\Esp.h" />
+    <ClInclude Include="X86TestSupport\esp32-hal-cpu.h" />
+    <ClInclude Include="X86TestSupport\esp32-hal-dac.h" />
+    <ClInclude Include="X86TestSupport\esp32-hal-gpio.h" />
+    <ClInclude Include="X86TestSupport\esp32-hal-ledc.h" />
+    <ClInclude Include="X86TestSupport\esp32-hal-matrix.h" />
+    <ClInclude Include="X86TestSupport\esp32-hal-timer.h" />
+    <ClInclude Include="X86TestSupport\esp32-hal.h" />
+    <ClInclude Include="X86TestSupport\esp_attr.h" />
     <ClInclude Include="X86TestSupport\esp_err.h" />
     <ClInclude Include="X86TestSupport\esp_system.h" />
     <ClInclude Include="X86TestSupport\freertos\FreeRTOS.h" />
@@ -195,10 +205,10 @@
     <ClInclude Include="X86TestSupport\SPI.h" />
     <ClInclude Include="X86TestSupport\SPIFFS.h" />
     <ClInclude Include="X86TestSupport\Stream.h" />
-    <ClInclude Include="X86TestSupport\TMCStepper.h" />
     <ClInclude Include="X86TestSupport\TMC\TMCStepper.h" />
     <ClInclude Include="X86TestSupport\TMC\TMCStepper_UTILITY.h" />
     <ClInclude Include="X86TestSupport\WString.h" />
+    <ClInclude Include="X86TestSupport\xtensa\core-macros.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\src\Configuration\AfterParse.cpp" />
@@ -224,7 +234,9 @@
     <ClCompile Include="Grbl_Esp32\src\Machine\Axis.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Machine\Endstops.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Machine\Gang.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\Machine\Homing.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Machine\I2SOBus.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\Machine\LimitPin.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Machine\MachineConfig.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Machine\SPIBus.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Machine\UserOutputs.cpp" />
@@ -244,7 +256,7 @@
     <ClCompile Include="Grbl_Esp32\src\Pins\ErrorPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\GPIOPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\I2SOPinDetail.cpp" />
-    <ClCompile Include="Grbl_Esp32\src\Pins\Ledc.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\Pins\LedcPin.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\PinAttributes.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\PinCapabilities.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\PinDetail.cpp" />
@@ -308,13 +320,20 @@
     <ClCompile Include="X86TestSupport\Arduino.cpp" />
     <ClCompile Include="X86TestSupport\driver\dac.cpp" />
     <ClCompile Include="X86TestSupport\driver\ledc.cpp" />
+    <ClCompile Include="X86TestSupport\driver\rmt.cpp" />
     <ClCompile Include="X86TestSupport\driver\uartdriver.cpp" />
+    <ClCompile Include="X86TestSupport\esp32-hal-timer.cpp" />
     <ClCompile Include="X86TestSupport\ExceptionHelper.cpp" />
     <ClCompile Include="X86TestSupport\freertos\Queue.cpp" />
     <ClCompile Include="X86TestSupport\freertos\Task.cpp" />
     <ClCompile Include="X86TestSupport\FS.cpp" />
+    <ClCompile Include="X86TestSupport\I2SO.cpp" />
     <ClCompile Include="X86TestSupport\nvs.cpp" />
     <ClCompile Include="X86TestSupport\Print.cpp" />
+    <ClCompile Include="X86TestSupport\SDFS.cpp" />
+    <ClCompile Include="X86TestSupport\soc\ledc_struct.cpp" />
+    <ClCompile Include="X86TestSupport\SPI.cpp" />
+    <ClCompile Include="X86TestSupport\SPIFFS.cpp" />
     <ClCompile Include="X86TestSupport\Stream.cpp" />
     <ClCompile Include="X86TestSupport\WString.cpp" />
   </ItemGroup>

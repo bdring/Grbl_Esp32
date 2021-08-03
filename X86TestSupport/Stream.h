@@ -66,6 +66,7 @@ public:
 
     bool find(char target) { return find(&target, 1); }
 
+    /*
     bool findUntil(const char* target, const char* terminator);  // as find but search ends if the terminator string is found
     bool findUntil(const uint8_t* target, const char* terminator) { return findUntil((char*)target, terminator); }
 
@@ -76,6 +77,7 @@ public:
     bool findUntil(const uint8_t* target, size_t targetLen, const char* terminate, size_t termLen) {
         return findUntil((char*)target, targetLen, terminate, termLen);
     }
+    */
 
     long parseInt();  // returns the first valid (long) integer value from the current position.
     // initial characters that are not digits (or the minus sign) are skipped

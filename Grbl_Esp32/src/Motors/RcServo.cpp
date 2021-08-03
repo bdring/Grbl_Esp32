@@ -31,7 +31,7 @@
 #include "RcServo.h"
 
 #include "../Machine/MachineConfig.h"
-#include "../Pins/Ledc.h"
+#include "../Pins/LedcPin.h"
 #include "../Pin.h"
 #include "../Limits.h"  // limitsMaxPosition
 #include "RcServoSettings.h"

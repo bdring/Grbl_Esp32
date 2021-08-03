@@ -97,7 +97,7 @@ public:
     }
 
     void set(const std::string& id, const std::vector<uint32_t>& value) {
-        auto it  = data_.find(id);
+        auto it = data_.find(id);
         if (it == data_.end()) {
             data_.insert(std::make_pair(id, value));
         } else {

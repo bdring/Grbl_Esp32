@@ -26,7 +26,7 @@
 */
 #include "10vSpindle.h"
 
-#include "../Pins/Ledc.h"
+#include "../Pins/LedcPin.h"
 #include "../System.h"       // sys.spindle_speed
 #include "../GCode.h"        // gc_state.modal
 #include <esp32-hal-ledc.h>  // ledcDetachPin

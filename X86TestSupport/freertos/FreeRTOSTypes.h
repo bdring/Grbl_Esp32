@@ -2,8 +2,6 @@
 
 #include <mutex>
 
-using portMUX_TYPE = std::mutex;
-
 #define portMAX_DELAY (TickType_t)0xffffffffUL
 
 using portBASE_TYPE = int;

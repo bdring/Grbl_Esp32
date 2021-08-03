@@ -146,7 +146,9 @@ inline int32_t IRAM_ATTR usToEndTicks(int32_t us) {
 
 inline void IRAM_ATTR spinUntil(int32_t endTicks) {
     while ((XTHAL_GET_CCOUNT() - endTicks) < 0) {
+#ifdef ESP32
         asm volatile("nop");
+#endif
     }
 }
 

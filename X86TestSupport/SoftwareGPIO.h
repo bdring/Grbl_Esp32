@@ -3,6 +3,7 @@
 #include "Arduino.h"
 #include <src/Assert.h>
 #include <random>
+#include "esp32-hal-gpio.h"
 
 struct SoftwarePin {
     SoftwarePin() : callback(), argument(nullptr), mode(0), driverValue(false), padValue(false), pinMode(0) {}

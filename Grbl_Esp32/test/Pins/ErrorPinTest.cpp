@@ -1,6 +1,7 @@
 #include "../TestFramework.h"
 
 #include <src/Pin.h>
+#include <esp32-hal-gpio.h>  // CHANGE
 
 namespace Pins {
     Test(Error, Pins) {

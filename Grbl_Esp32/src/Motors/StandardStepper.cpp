@@ -27,6 +27,8 @@
 #include "../Stepper.h"   // ST_I2S_*
 #include "../Stepping.h"  // config->_stepping->_engine
 
+#include <esp32-hal-gpio.h>  // gpio
+
 using namespace Machine;
 
 namespace Motors {

@@ -1,9 +1,14 @@
 #include "Arduino.h"
 
 #include "SoftwareGPIO.h"
+#include "Capture.h"
 
 #include <chrono>
 #include <thread>
+
+int64_t esp_timer_get_time() {
+    return Capture::instance().current();
+}
 
 void attachInterrupt(uint8_t pin, void (*callback)(void), int mode) {
     attachInterruptArg(

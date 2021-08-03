@@ -14,6 +14,10 @@
 
 #pragma once
 
+#include <cstdint>
+
+#include "../esp_err.h"
+
 typedef struct rmt_item32_s {
     union {
         struct {
@@ -350,4 +354,5 @@ typedef volatile struct rmt_dev_s {
     uint32_t reserved_f8;
     uint32_t date; /*This is the version register.*/
 } rmt_dev_t;
+
 extern rmt_dev_t RMT;

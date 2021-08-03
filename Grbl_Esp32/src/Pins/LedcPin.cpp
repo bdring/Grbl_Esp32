@@ -1,4 +1,4 @@
-#include "Ledc.h"
+#include "LedcPin.h"
 
 /*
     Ledc.cpp

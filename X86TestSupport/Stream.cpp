@@ -22,11 +22,11 @@
 
 #include "Arduino.h"
 #include "Stream.h"
+#include "esp32-hal.h"
 
 #define PARSE_TIMEOUT 1000  // default number of milli-seconds to wait
 #define NO_SKIP_CHAR 1      // a magic char not found in a valid ASCII numeric field
 
-/*
 // private method to read stream with timeout
 int Stream::timedRead() {
     int c;
@@ -52,7 +52,6 @@ int Stream::timedPeek() {
     } while ((millis() - _startMillis) < _timeout);
     return -1;  // -1 indicates timeout
 }
-*/
 
 // returns peek of the next digit in the stream or -1 if timeout
 // discards non-numeric characters
@@ -86,20 +85,30 @@ unsigned long Stream::getTimeout(void) {
 
 // find returns true if the target string is found
 bool Stream::find(const char* target) {
-    return findUntil(target, strlen(target), NULL, 0);
+    return find(target, strlen(target));
 }
 
 // reads data from the stream until the target string of given length is found
 // returns true if target string is found, false if timed out
-bool Stream::find(const char* target, size_t length) {
-    return findUntil(target, length, NULL, 0);
+bool Stream::find(const char* target, size_t targetLen) {
+    int targetIdx = 0;
+    while (targetIdx < targetLen) {
+        auto current = read();
+        if (current == target[targetIdx]) {
+            ++targetIdx;
+        } else {
+            targetIdx = 0;
+        }
+    }
+    return targetIdx == targetLen;
 }
 
+/*
 // as find but search ends if the terminator string is found
 bool Stream::findUntil(const char* target, const char* terminator) {
     return findUntil(target, strlen(target), terminator, strlen(terminator));
 }
-/*
+
 // reads data from the stream until the target string of the given length is found
 // search terminated if the terminator string is found
 // returns true if target string is found, false if terminated or timed out

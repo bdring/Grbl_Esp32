@@ -7,6 +7,8 @@
 #include "../Limits.h"
 #include "../System.h"  // sys_rt_exec_alarm
 
+#include <esp32-hal-gpio.h>  // CHANGE
+
 namespace Machine {
     LimitPin::LimitPin(Pin& pin, int axis, int gang, int direction, bool& pHardLimits) :
         _axis(axis), _gang(gang), _value(false), _pHardLimits(pHardLimits), _pin(pin) {

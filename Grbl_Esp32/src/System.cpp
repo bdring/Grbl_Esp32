@@ -31,6 +31,7 @@
 #include <cstring>  // memset
 #include <freertos/queue.h>
 #include <freertos/task.h>
+#include <esp32-hal-gpio.h>  // LOW
 
 // Declare system global variable structure
 system_t               sys;
