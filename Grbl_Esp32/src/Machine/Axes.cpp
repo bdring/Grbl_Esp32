@@ -28,7 +28,7 @@ namespace Machine {
             _sharedStepperDisable.report("Shared stepper disable");
         }
 
-        release_all_motors();
+        unlock_all_motors();
 
         // certain motors need features to be turned on. Check them here
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
@@ -83,7 +83,7 @@ namespace Machine {
     // Put the motors in the given axes into homing mode, returning a
     // mask of which motors (considering gangs) can do homing.
     MotorMask Axes::set_homing_mode(AxisMask axisMask, bool isHoming) {
-        release_all_motors();  // On homing transitions, cancel all motor lockouts
+        unlock_all_motors();  // On homing transitions, cancel all motor lockouts
         MotorMask motorsCanHome = 0;
 
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
@@ -102,125 +102,127 @@ namespace Machine {
         return motorsCanHome;
     }
 
-    void Axes::release_all_motors() { _motorLockoutMask = 0xffffffff; }
-    void Axes::stop_motors(MotorMask mask) { clear_bits(_motorLockoutMask, mask); }
+    void Axes::unlock_all_motors() { _motorLockoutMask = 0; }
+    void Axes::lock_motors(MotorMask mask) { set_bits(_motorLockoutMask, mask); }
+    void Axes::unlock_motors(MotorMask mask) {clear_bits(_motorLockoutMask, mask); }
+        ;
 
-    void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
-        auto n_axis = _numberAxis;
-        //log_info("motors_set_direction_pins:0x%02X", onMask);
+        void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
+            auto n_axis = _numberAxis;
+            //log_info("motors_set_direction_pins:0x%02X", onMask);
 
-        // Set the direction pins, but optimize for the common
-        // situation where the direction bits haven't changed.
-        static uint8_t previous_dir = 255;  // should never be this value
-        if (dir_mask != previous_dir) {
-            previous_dir = dir_mask;
+            // Set the direction pins, but optimize for the common
+            // situation where the direction bits haven't changed.
+            static uint8_t previous_dir = 255;  // should never be this value
+            if (dir_mask != previous_dir) {
+                previous_dir = dir_mask;
 
-            for (int axis = X_AXIS; axis < n_axis; axis++) {
-                bool thisDir = bitnum_is_true(dir_mask, axis);
+                for (int axis = X_AXIS; axis < n_axis; axis++) {
+                    bool thisDir = bitnum_is_true(dir_mask, axis);
 
+                    for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+                        auto a = _axis[axis]->_gangs[gang_index]->_motor;
+
+                        if (a != nullptr) {
+                            a->set_direction(thisDir);
+                        }
+                    }
+                }
+                config->_stepping->waitDirection();
+            }
+
+            config->_stepping->startPulseTimer();
+
+            // Turn on step pulses for motors that are supposed to step now
+            for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+                if (bitnum_is_true(step_mask, axis)) {
+                    auto a = _axis[axis];
+
+                    if (bitnum_is_false(_motorLockoutMask, axis)) {
+                        a->_gangs[0]->_motor->step();
+                    }
+                    if (bitnum_is_false(_motorLockoutMask, axis + 16)) {
+                        a->_gangs[1]->_motor->step();
+                    }
+                }
+            }
+        }
+
+        // Turn all stepper pins off
+        void IRAM_ATTR Axes::unstep() {
+            config->_stepping->waitPulse();
+            auto n_axis = _numberAxis;
+            for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
                 for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
                     auto a = _axis[axis]->_gangs[gang_index]->_motor;
-
-                    if (a != nullptr) {
-                        a->set_direction(thisDir);
-                    }
+                    a->unstep();
+                    a->unstep();
                 }
             }
-            config->_stepping->waitDirection();
+
+            config->_stepping->finishPulse();
         }
 
-        config->_stepping->startPulseTimer();
-
-        // Turn on step pulses for motors that are supposed to step now
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            if (bitnum_is_true(step_mask, axis)) {
-                auto a = _axis[axis];
-
-                if (bitnum_is_true(_motorLockoutMask, axis)) {
-                    a->_gangs[0]->_motor->step();
-                }
-                if (bitnum_is_true(_motorLockoutMask, axis + 16)) {
-                    a->_gangs[1]->_motor->step();
-                }
-            }
-        }
-    }
-
-    // Turn all stepper pins off
-    void IRAM_ATTR Axes::unstep() {
-        config->_stepping->waitPulse();
-        auto n_axis = _numberAxis;
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-                auto a = _axis[axis]->_gangs[gang_index]->_motor;
-                a->unstep();
-                a->unstep();
-            }
-        }
-
-        config->_stepping->finishPulse();
-    }
-
-    // Some small helpers to find the axis index and axis ganged index for a given motor. This
-    // is helpful for some motors that need this info, as well as debug information.
-    size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
-        for (int i = 0; i < _numberAxis; ++i) {
-            for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
-                if (_axis[i] != nullptr && _axis[i]->hasMotor(motor)) {
-                    return i;
-                }
-            }
-        }
-
-        Assert(false, "Cannot find axis for motor. Something wonky is going on here...");
-        return SIZE_MAX;
-    }
-
-    size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
-        for (int i = 0; i < _numberAxis; ++i) {
-            if (_axis[i] != nullptr && _axis[i]->hasMotor(motor)) {
+        // Some small helpers to find the axis index and axis ganged index for a given motor. This
+        // is helpful for some motors that need this info, as well as debug information.
+        size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
+            for (int i = 0; i < _numberAxis; ++i) {
                 for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
-                    if (_axis[i]->_gangs[j]->_motor == motor) {
-                        return j;
+                    if (_axis[i] != nullptr && _axis[i]->hasMotor(motor)) {
+                        return i;
                     }
+                }
+            }
+
+            Assert(false, "Cannot find axis for motor. Something wonky is going on here...");
+            return SIZE_MAX;
+        }
+
+        size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
+            for (int i = 0; i < _numberAxis; ++i) {
+                if (_axis[i] != nullptr && _axis[i]->hasMotor(motor)) {
+                    for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
+                        if (_axis[i]->_gangs[j]->_motor == motor) {
+                            return j;
+                        }
+                    }
+                }
+            }
+
+            Assert(false, "Cannot find axis for motor. Something wonky is going on here...");
+            return SIZE_MAX;
+        }
+
+        // Configuration helpers:
+
+        void Axes::group(Configuration::HandlerBase & handler) {
+            handler.item("number_axis", _numberAxis);
+            handler.item("shared_stepper_disable", _sharedStepperDisable);
+
+            // Handle axis names xyzabc.  handler.section is inferred
+            // from a template.
+            char tmp[3];
+            tmp[2] = '\0';
+
+            for (size_t i = 0; i < MAX_N_AXIS; ++i) {
+                tmp[0] = tolower(_names[i]);
+                tmp[1] = '\0';
+
+                handler.section(tmp, _axis[i], i);
+            }
+        }
+
+        void Axes::afterParse() {
+            for (size_t i = 0; i < MAX_N_AXIS; ++i) {
+                if (_axis[i] == nullptr) {
+                    _axis[i] = new Axis(i);
                 }
             }
         }
 
-        Assert(false, "Cannot find axis for motor. Something wonky is going on here...");
-        return SIZE_MAX;
-    }
-
-    // Configuration helpers:
-
-    void Axes::group(Configuration::HandlerBase& handler) {
-        handler.item("number_axis", _numberAxis);
-        handler.item("shared_stepper_disable", _sharedStepperDisable);
-
-        // Handle axis names xyzabc.  handler.section is inferred
-        // from a template.
-        char tmp[3];
-        tmp[2] = '\0';
-
-        for (size_t i = 0; i < MAX_N_AXIS; ++i) {
-            tmp[0] = tolower(_names[i]);
-            tmp[1] = '\0';
-
-            handler.section(tmp, _axis[i], i);
-        }
-    }
-
-    void Axes::afterParse() {
-        for (size_t i = 0; i < MAX_N_AXIS; ++i) {
-            if (_axis[i] == nullptr) {
-                _axis[i] = new Axis(i);
+        Axes::~Axes() {
+            for (int i = 0; i < MAX_N_AXIS; ++i) {
+                delete _axis[i];
             }
         }
     }
-
-    Axes::~Axes() {
-        for (int i = 0; i < MAX_N_AXIS; ++i) {
-            delete _axis[i];
-        }
-    }
-}

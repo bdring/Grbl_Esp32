@@ -144,7 +144,8 @@ namespace Machine {
 
         uint32_t settling_ms = plan_move(remainingMotors, approach, seek);
 
-        config->_axes->release_all_motors();
+        config->_axes->lock_motors(0xffffffff);
+        config->_axes->unlock_motors(remainingMotors);
 
         do {
             if (approach) {
@@ -152,7 +153,7 @@ namespace Machine {
                 // XXX do we check only the switch in the direction of motion?
                 MotorMask limitedMotors = Machine::Axes::posLimitMask | Machine::Axes::negLimitMask;
 
-                config->_axes->stop_motors(limitedMotors);
+                config->_axes->lock_motors(limitedMotors);
                 clear_bits(remainingMotors, limitedMotors);
             }
 
@@ -198,9 +199,9 @@ namespace Machine {
             // No axis has multiple motors
             return false;
         }
+
         auto axes   = config->_axes;
         auto n_axis = axes->_numberAxis;
-
         for (int axis = 0; axis < n_axis; axis++) {
             if (bitnum_is_false(squaredAxes, axis)) {
                 continue;
@@ -211,6 +212,7 @@ namespace Machine {
                 // Shared endstop on squared axis
                 return true;
             }
+            // check to see if at least one side is missing a switch
             endstop = axisConfig->_gangs[0]->_endstops;
             if (!endstop) {
                 // Missing endstop on gang 0
@@ -277,7 +279,6 @@ namespace Machine {
             if (squaredOneSwitch(motors)) {
                 run(motors & GANG0, true, false);   // Approach slowly
                 run(motors & GANG0, false, false);  // Pulloff
-
                 run(motors & GANG1, true, false);   // Approach slowly
                 run(motors & GANG1, false, false);  // Pulloff
             } else {

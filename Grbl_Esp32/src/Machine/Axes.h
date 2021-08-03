@@ -33,7 +33,7 @@ namespace Machine {
 
         // During homing, this is used to stop stepping on motors that have
         // reached their limit switches, by clearing bits in the mask.
-        MotorMask _motorLockoutMask = 0xffffffff;
+        MotorMask _motorLockoutMask = 0;
 
     public:
         Axes();
@@ -90,8 +90,9 @@ namespace Machine {
         // These are used during homing cycles.
         // The return value is a bitmask of axes that can home
         MotorMask set_homing_mode(AxisMask homing_mask, bool isHoming);
-        void      release_all_motors();
-        void      stop_motors(MotorMask motor_mask);
+        void      unlock_all_motors();     
+        void      lock_motors(MotorMask motor_mask);
+        void      unlock_motors(MotorMask motor_mask);
 
         void set_disable(int axis, bool disable);
         void set_disable(bool disable);
