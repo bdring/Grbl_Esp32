@@ -18,7 +18,7 @@
 
 #include "PwmPin.h"
 
-#include "../Pins/Ledc.h"
+#include "../Pins/LedcPin.h"
 #include "../Pin.h"
 #include "../Assert.h"
 
