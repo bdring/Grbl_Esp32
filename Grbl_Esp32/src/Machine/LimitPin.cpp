@@ -98,6 +98,12 @@ namespace Machine {
         }
     }
 
+    // Turn a one-motor mask into a both-motors mask
+    void LimitPin::expandMask() {
+        _bitmask |= _bitmask >> 16;
+        _bitmask |= _bitmask << 16;
+    }
+
     void LimitPin::init() {
         if (_pin.undefined()) {
             return;

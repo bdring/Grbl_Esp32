@@ -40,6 +40,8 @@ namespace Machine {
 
         void init();
 
+        void expandLimitMasks();
+
         // Configuration system helpers:
         void validate() const override;
         void group(Configuration::HandlerBase& handler) override;

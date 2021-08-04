@@ -27,6 +27,19 @@ namespace Machine {
     }
 
     void Axis::afterParse() {
+        bool hasMotor0 = _gangs[0] && _gangs[0]->_motor;
+        bool hasMotor1 = _gangs[1] && _gangs[1]->_motor;
+        bool hasLimit0 = _gangs[0] && _gangs[0]->_endstops;
+        bool hasLimit1 = _gangs[1] && _gangs[1]->_endstops;
+
+        // Fix the masks if both motors are present but there is exactly one limit setup
+        bool fixLimitMasks = hasMotor0 && hasMotor1 && (hasLimit0 ^ hasLimit1);
+        if (fixLimitMasks) {
+            // Since there is exactly one endstop,
+            // hasLimit1 is 0 if endstop0 is present, 1 if endstop 1 is present
+            _gangs[hasLimit1]->_endstops->expandLimitMasks();
+        }
+
         for (size_t i = 0; i < MAX_NUMBER_GANGED; ++i) {
             if (_gangs[i] == nullptr) {
                 _gangs[i] = new Gang(_axis, i);

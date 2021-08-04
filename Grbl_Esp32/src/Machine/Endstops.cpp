@@ -25,6 +25,12 @@ namespace Machine {
         _allLimitPin = new LimitPin(_allPin, _axis, _gang, 0, _hardLimits);
     }
 
+    void Endstops::expandLimitMasks() {
+        _negLimitPin->expandMask();
+        _posLimitPin->expandMask();
+        _allLimitPin->expandMask();
+    }
+
     void Endstops::init() {
         _negLimitPin->init();
         _posLimitPin->init();
