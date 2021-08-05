@@ -67,7 +67,7 @@ namespace Spindles {
 
                 // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 5;
+        data.rx_length = 6;
 
         // We have to know the max RPM before we can set the current RPM:
         auto max_rpm = this->_max_rpm;
