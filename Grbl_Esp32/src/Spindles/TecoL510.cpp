@@ -69,19 +69,7 @@ namespace Spindles {
         data.tx_length = 6;
         data.rx_length = 6;
 
-        // We have to know the max RPM before we can set the current RPM:
-        auto max_rpm = this->_max_rpm;
-        auto max_freq = this->_max_freq;
-
-        // Assuming max frequncy is 400Hz
-        // Speed is in [0..40,000] 
-        uint16_t freq = (uint16_t(rpm) * max_freq) / uint32_t(max_rpm);
-        if (freq < 0) {
-            freq = 0;
-        }
-        if (freq > max_freq) {
-            freq = max_freq;
-        }
+        uint16_t freq = rpm_to_frequency(rpm);
 
         data.msg[1] = 0x06;  // WRITE
         data.msg[2] = 0x25;  // Command ID 0x2502
@@ -97,6 +85,12 @@ namespace Spindles {
         auto max_rpm = this->_max_rpm;
         auto max_freq = this->_max_freq;
         uint16_t freq = (uint32_t(rpm) * max_freq) / uint32_t(max_rpm);
+        if (freq < 0) {
+            freq = 0;
+        }
+        if (freq > max_freq) {
+            freq = max_freq;
+        }
         return freq;
     }
 
