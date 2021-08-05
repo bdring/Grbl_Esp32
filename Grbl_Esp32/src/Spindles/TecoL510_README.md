@@ -22,6 +22,7 @@ this was tested with pin 16 RX and 26 TX mapped in the machine config file.  Pin
 #define VFD_RS485_RTS_PIN        GPIO_NUM_4
 #define VFD_RS485_RXD_PIN        GPIO_NUM_16
 // Not sure why this isn't a setting
+
 #define DEFAULT_SPINDLE_RPM_MAX 24000.0 // rpm
 #define DEFAULT_SPINDLE_RPM_MIN 6000.0 // rpm
 ```

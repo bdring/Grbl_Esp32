@@ -38,6 +38,7 @@ namespace Spindles {
     void L510::direction_command(SpindleState mode, ModbusCommand& data) {
         //  Note: The direction command is always called on M3,M4, and M5
         //      This is where the spindle start/stop should be sent
+        
 
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
