@@ -124,7 +124,7 @@ namespace Spindles {
                 uint32_t rpm = (response[3] << 8) | response[4];
 
                 // NOTE:  the frequency is stored xxx.x but the input command is frequency * 100;
-                uint16_t freq = (response[9] << 8) | response[10];
+                uint16_t freq = ((uint16_t)response[9] << 8) | (uint16_t)response[10];
                 freq          = freq * 10;
                 auto l510     = static_cast<L510*>(vfd);
 
@@ -153,7 +153,7 @@ namespace Spindles {
         data.msg[5] = 0x01;
 
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-            uint32_t vfd_state = (response[3] << 8) | response[4];
+            uint16_t vfd_state = ((uint16_t)response[3] << 8) | (uint16_t)response[4];
 
             if (bitRead(vfd_state, 3)) {
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 Fault detected");
@@ -176,7 +176,7 @@ namespace Spindles {
         data.msg[5] = 0x01;
 
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-            uint16_t freq = (response[3] << 8) | response[4];
+            uint16_t freq = ((uint16_t)response[3] << 8) | (uint16_t)response[4];
 
             auto l510 = static_cast<L510*>(vfd);
 
