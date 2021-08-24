@@ -99,8 +99,8 @@
 #define MOTOR_4_BACKWARD 8
 #define MOTOR_4_CS 25
 
-#define DC_TOP_LEFT_MM_PER_REV 44//31.415 // Correct for 10mm pulley
-#define DC_Z_AXIS_MM_PER_REV 1//31.415 //
+#define DC_TOP_LEFT_MM_PER_REV 44
+#define DC_Z_AXIS_MM_PER_REV 1
 
 void recomputePID();
 void setTargets(float xTarget, float yTarget, float zTarget);
