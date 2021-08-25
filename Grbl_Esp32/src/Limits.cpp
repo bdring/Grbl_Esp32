@@ -416,3 +416,12 @@ bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
 bool __attribute__((weak)) user_defined_homing(uint8_t cycle_mask) {
     return false;
 }
+
+void limitsCheckSoft(float* target) {
+    if (soft_limits->get()) {
+        // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
+        if (sys.state != State::Jog && sys.state != State::Homing) {
+            limits_soft_check(target);
+        }
+    }
+}
