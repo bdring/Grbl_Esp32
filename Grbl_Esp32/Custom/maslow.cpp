@@ -168,8 +168,8 @@ void runCalibration(){
     calibrationInProgress = true;
     
     //This is a bit of a hack, but it undoes any calls by the system to move these to (0,0)
-    axis1.setTarget(computeL4(0, -200));
-    axis2.setTarget(computeL3(0, -200));
+    axis1.setTarget(computeL4(0, -300));
+    axis2.setTarget(computeL3(0, -300));
     axis3.setTarget(computeL2(0, -500));
     axis4.setTarget(computeL1(0, -500));
     
@@ -190,34 +190,30 @@ void runCalibration(){
     
     takeMeasurementAvg(lengths3);
     
+    axis1.stop();
+    axis2.stop();
+    axis3.stop();
+    axis4.stop();
+    
     //----------------------------------------------------------Do the computation
     
     printMeasurements(lengths1);
     printMeasurements(lengths2);
     printMeasurements(lengths3);
     
-    // float computedDimensions1 [2];
-    // float computedDimensions2 [2];
-    // float computedDimensions3 [2];
-    // float computedDimensions4 [2];
-    // float computedDimensions5 [2];
-    // float computedDimensions6 [2];
-    // float computedDimensions7 [2];
-    // float computedDimensions8 [2];
-    // float computedDimensions9 [2];
-    // float computedDimensions10 [2];
-    // float computedDimensions11 [2];
+    double measurements[][4] = {
+        //TL              TR           BL           BR
+        {lengths1[3], lengths1[2], lengths1[0], lengths1[1]},
+        {lengths2[3], lengths2[2], lengths2[0], lengths2[1]},
+        {lengths3[3], lengths3[2], lengths3[0], lengths3[1]}
+    };
     
-    // computeFrameDimensions(lengths1, lengths3, machineDimensions1);
-    // computeFrameDimensions(lengths1, lengths4, machineDimensions2);
-    // computeFrameDimensions(lengths1, lengths5, machineDimensions3);
-    // computeFrameDimensions(lengths1, lengths6, machineDimensions4);
-    // computeFrameDimensions(lengths1, lengths7, machineDimensions5);
+    double results[9] = {0,0,0,0,0,0,0,0,0};
     
-    // computeFrameDimensions(lengths2, lengths4, machineDimensions6);
-    // computeFrameDimensions(lengths2, lengths3, machineDimensions7);
-    // computeFrameDimensions(lengths2, lengths3, machineDimensions8);
-    // computeFrameDimensions(lengths2, lengths3, machineDimensions9);
+    computeCalibration(measurements, results);
+    
+    grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[8]);
+    grbl_sendf(CLIENT_ALL, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]);
     
     
     //---------------------------------------------------------Finish
@@ -225,10 +221,6 @@ void runCalibration(){
     calibrationInProgress = false;
     grbl_sendf(CLIENT_ALL, "Calibration finished\n");
     
-    axis1.stop();
-    axis2.stop();
-    axis3.stop();
-    axis4.stop();
 }
 
 void printMeasurements(float lengths[]){
@@ -488,7 +480,7 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 bool user_defined_homing(uint8_t cycle_mask)
 {
   
-  grbl_sendf(CLIENT_ALL, "User defined calibration\n");
+  grbl_sendf(CLIENT_ALL, "Extending\n");
   
   if(cycle_mask == 1){  //Upper left
     axis4.testEncoder();
@@ -507,7 +499,6 @@ bool user_defined_homing(uint8_t cycle_mask)
       else{
         axis2Homed = axis2.retract(computeL3(0, -300));
     }
-    grbl_sendf(CLIENT_ALL, "Extending to: %f", computeL2(0, 0));
   }
   else if(cycle_mask == 0){  //Lower left
     axis1.testEncoder();

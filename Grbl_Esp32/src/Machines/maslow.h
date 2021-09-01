@@ -58,6 +58,8 @@
 
 #pragma once
 
+#include <calibration.h>
+
 #define MACHINE_NAME            "MASLOW 4"
 
 #define CUSTOM_CODE_FILENAME "../Custom/maslow.cpp"
