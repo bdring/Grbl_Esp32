@@ -176,58 +176,25 @@ void runCalibration(){
     float lengths1[4];
     float lengths2[4];
     float lengths3[4];
-    float lengths4[4];
-    float lengths5[4];
-    float lengths6[4];
-    float lengths7[4];
-    float lengths8[4];
-    float lengths9[4];
     
     //------------------------------------------------------Take measurements
     
+    takeMeasurementAvg(lengths1);//Repeat and throw away the first one
     takeMeasurementAvg(lengths1);
     
-    moveUp(computeL1(0, -250));
+    moveUp(computeL1(0, 0));
     
     takeMeasurementAvg(lengths2);
     
-     moveUp(computeL1(0, 0));
+    moveUp(computeL1(0, 500));
     
     takeMeasurementAvg(lengths3);
-    
-     moveUp(computeL1(0, 250));
-    
-    takeMeasurementAvg(lengths4);
-    
-     moveUp(computeL1(0, 500));
-    
-    takeMeasurementAvg(lengths5);
-    
-    //-----------------------------------------------------------Move back down
-    
-    moveDown(computeL1(0, 250));
-    takeMeasurementAvg(lengths6);
-    
-    moveDown(computeL1(0, 0));
-    takeMeasurementAvg(lengths7);
-    
-    moveDown(computeL1(0, -250));
-    takeMeasurementAvg(lengths8);
-    
-    moveDown(computeL1(0, -500));
-    takeMeasurementAvg(lengths9);
     
     //----------------------------------------------------------Do the computation
     
     printMeasurements(lengths1);
     printMeasurements(lengths2);
     printMeasurements(lengths3);
-    printMeasurements(lengths4);
-    printMeasurements(lengths5);
-    printMeasurements(lengths6);
-    printMeasurements(lengths7);
-    printMeasurements(lengths8);
-    printMeasurements(lengths9);
     
     // float computedDimensions1 [2];
     // float computedDimensions2 [2];
@@ -265,7 +232,7 @@ void runCalibration(){
 }
 
 void printMeasurements(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "%f   %f   %f   %f\n", lengths[0], lengths[1], lengths[2], lengths[3]);
+    grbl_sendf(CLIENT_ALL, "BL:%f   BR:%f   TR:%f   TL:%f\n", lengths[0], lengths[1], lengths[2], lengths[3]);
 }
 
 void lowerBeltsGoSlack(){
@@ -282,6 +249,10 @@ void lowerBeltsGoSlack(){
         //Set the lower axis to be compliant. PID is recomputed in comply()
         axis1.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
         axis2.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
+        
+        //The other axis hold position
+        axis3.recomputePID();
+        axis4.recomputePID();
         
         // Delay without blocking
         unsigned long time = millis();
@@ -327,7 +298,6 @@ void takeMeasurement(float lengths[]){
     bool axis2Done = false;
     
     while(!axis1Done || !axis2Done){  //As long as one axis is still pulling
-        
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
         int currentThreshold = 2;
