@@ -203,10 +203,10 @@ void runCalibration(){
     calibrationInProgress = true;
     
     //This is a hack and should be fixed, but it undoes any calls by the system to move these to (0,0)
-    axis1.setTarget(computeL4(0, -300));
-    axis2.setTarget(computeL3(0, -300));
-    axis3.setTarget(computeL2(0, -500));
-    axis4.setTarget(computeL1(0, -500));
+    axis1.setTarget(computeL1(0, -300));
+    axis2.setTarget(computeL2(0, -300));
+    axis3.setTarget(computeL3(0, -500));
+    axis4.setTarget(computeL4(0, -500));
     
     float lengths1[4];
     float lengths2[4];
@@ -217,11 +217,11 @@ void runCalibration(){
     takeMeasurementAvg(lengths1);//Repeat and throw away the first one
     takeMeasurementAvg(lengths1);
     
-    moveUp(computeL1(0, 0));
+    moveUp(computeL4(0, 0));
     
     takeMeasurementAvg(lengths2);
     
-    moveUp(computeL1(0, 500));
+    moveUp(computeL4(0, 500));
     
     takeMeasurementAvg(lengths3);
     
@@ -248,14 +248,27 @@ void runCalibration(){
     computeCalibration(measurements, results);
     
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[8]);
-    grbl_sendf(CLIENT_ALL, "%f, %f, %f, %f, %f, %f, %f, %f, %f\n", results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]);
     
+    if(results[8] < 2){
+        grbl_sendf(CLIENT_ALL, "Calibration sucessfull with precision %f\n", results[8]);
+        tlX = results[0];
+        tlY = results[1];
+        trX = results[2];
+        trY = results[3];
+        blX = results[4];
+        blY = results[5];
+        brX = results[6];
+        brY = results[7];
+    }
+    else{
+        grbl_sendf(CLIENT_ALL, "Calibration failed: %f\n", results[8]);
+    }
     
     //---------------------------------------------------------Finish
     
     
     //Move back to center
-    //moveDown(computeL1(0, 0));
+    moveDown(computeL4(0, 0));
     
     calibrationInProgress = false;
     grbl_sendf(CLIENT_ALL, "Calibration finished\n");
@@ -523,12 +536,11 @@ bool user_defined_homing(uint8_t cycle_mask)
   
   if(cycle_mask == 1){  //Upper left
     axis4.testEncoder();
-    axis4Homed = axis4.retract(computeL1(0, -500));
+    axis4Homed = axis4.retract(computeL4(0, -500));
   }
   else if(cycle_mask == 2){  //Upper right
     axis3.testEncoder();
-    axis3Homed = axis3.retract(computeL2(0, -500));
-    grbl_sendf(CLIENT_ALL, "Extending to: %f", computeL2(0, 0));
+    axis3Homed = axis3.retract(computeL3(0, -500));
   }
   else if(cycle_mask == 4){ //Lower right
     axis2.testEncoder();
@@ -536,12 +548,12 @@ bool user_defined_homing(uint8_t cycle_mask)
         runCalibration();
     }
       else{
-        axis2Homed = axis2.retract(computeL3(0, -300));
+        axis2Homed = axis2.retract(computeL2(0, -300));
     }
   }
   else if(cycle_mask == 0){  //Lower left
     axis1.testEncoder();
-    axis1Homed = axis1.retract(computeL4(0, -300));
+    axis1Homed = axis1.retract(computeL1(0, -300));
   }
   
   return true;
