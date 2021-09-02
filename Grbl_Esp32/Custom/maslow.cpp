@@ -56,8 +56,18 @@ MotorUnit axis2(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, ad
 MotorUnit axis3(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
 MotorUnit axis4(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
 
-float maslowWidth;
-float maslowHeight;
+//The xy cordinates of each of the anchor points
+float tlX;
+float tlY;
+float trX;
+float trY;
+float blX;
+float blY;
+float brX;
+float brY;
+float centerX;
+float centerY;
+
 float beltEndExtension;
 float armLength;
 
@@ -93,8 +103,21 @@ void machine_init()
     axis3Homed = false;
     axis4Homed = false;
     
-    maslowWidth = 2900.0;
-    maslowHeight = 1780.0;
+    tlX = 0;
+    tlY = 1800;
+    trX = 2900;
+    trY = 1800;
+    blX = 0;
+    blY = 0;
+    brX = 2900;
+    brY = 0;
+    
+    double A = (trY - blY)/(trX-blX);
+    double B = (brY-tlY)/(brX-tlX);
+    
+    centerX = (brY-(B*brX)+(A*trX)-trY)/(A-B);
+    centerY = A*(centerX - trX) + trY;
+    
     beltEndExtension = 30;
     armLength = 114;
 }
@@ -123,30 +146,42 @@ void recomputePID(){
 
 //Upper left belt
 float computeL1(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = (maslowHeight/2.0) - y;
-    return sqrt(x*x+y*y) - (beltEndExtension+armLength);
+    //Move from lower left corner cordinates to centered cordinates
+    x = x + centerX;
+    y = centerY - y;
+    float a = tlX - x;
+    float b = tlY - y;
+    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
 //Upper right belt
 float computeL2(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = maslowHeight/2.0 - y;
-    return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y) - (beltEndExtension+armLength);
+    //Move from lower left corner cordinates to centered cordinates
+    x = x + centerX;
+    y = centerY - y;
+    float a = trX - x;
+    float b = trY - y;
+    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
 //Lower right belt
 float computeL3(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = maslowHeight/2.0 - y;
-    return sqrt((maslowWidth-x)*(maslowWidth-x)+(maslowHeight-y)*(maslowHeight-y)) - (beltEndExtension+armLength);
+    //Move from lower left corner cordinates to centered cordinates
+    x = x + centerX;
+    y = centerY - y;
+    float a = brX - x;
+    float b = brY - y;
+    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
 //Lower left belt
 float computeL4(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = maslowHeight/2.0 - y;
-    return sqrt((maslowHeight-y)*(maslowHeight-y)+x*x) - (beltEndExtension+armLength);
+    //Move from lower left corner cordinates to centered cordinates
+    x = x + centerX;
+    y = centerY - y;
+    float a = blX - x;
+    float b = blY - y;
+    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
@@ -167,7 +202,7 @@ void runCalibration(){
     
     calibrationInProgress = true;
     
-    //This is a bit of a hack, but it undoes any calls by the system to move these to (0,0)
+    //This is a hack and should be fixed, but it undoes any calls by the system to move these to (0,0)
     axis1.setTarget(computeL4(0, -300));
     axis2.setTarget(computeL3(0, -300));
     axis3.setTarget(computeL2(0, -500));
@@ -217,6 +252,10 @@ void runCalibration(){
     
     
     //---------------------------------------------------------Finish
+    
+    
+    //Move back to center
+    //moveDown(computeL1(0, 0));
     
     calibrationInProgress = false;
     grbl_sendf(CLIENT_ALL, "Calibration finished\n");
