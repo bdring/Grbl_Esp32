@@ -106,10 +106,10 @@
 
 void recomputePID();
 void setTargets(float xTarget, float yTarget, float zTarget);
-float computeL1(float x, float y);
-float computeL2(float x, float y);
-float computeL3(float x, float y);
-float computeL4(float x, float y);
+float computeTL(float x, float y);
+float computeTR(float x, float y);
+float computeBL(float x, float y);
+float computeBR(float x, float y);
 void runCalibration();
 void lowerBeltsGoSlack();
 void takeMeasurementAvg(float lengths[]);
@@ -119,6 +119,7 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower);
 void takeMeasurement(float lengths[]);
 void printMeasurements(float lengths[]);
+void printPrecision(float precision);
 
 
 

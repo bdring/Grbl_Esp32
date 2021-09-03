@@ -51,10 +51,10 @@ TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
 esp_adc_cal_characteristics_t *adc_1_characterisitics = (esp_adc_cal_characteristics_t*) calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
-MotorUnit axis1(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axis2(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axis3(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axis4(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisBL(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisBR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisTR(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisTL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
 
 //The xy cordinates of each of the anchor points
 float tlX;
@@ -71,10 +71,10 @@ float centerY;
 float beltEndExtension;
 float armLength;
 
-bool axis1Homed;
-bool axis2Homed;
-bool axis3Homed;
-bool axis4Homed;
+bool axisBLHomed;
+bool axisBRHomed;
+bool axisTRHomed;
+bool axisTLHomed;
 bool calibrationInProgress;  //Used to turn off regular movements during calibration
 
 
@@ -88,20 +88,20 @@ void machine_init()
     tlc.begin();
     
     Serial.println("Testing reading from encoders: ");
-    axis1.testEncoder();
-    axis2.testEncoder();
-    axis3.testEncoder();
-    axis4.testEncoder();
+    axisBL.testEncoder();
+    axisBR.testEncoder();
+    axisTR.testEncoder();
+    axisTL.testEncoder();
     
-    axis1.zero();
-    axis2.zero();
-    axis3.zero();
-    axis4.zero();
+    axisBL.zero();
+    axisBR.zero();
+    axisTR.zero();
+    axisTL.zero();
     
-    axis1Homed = false;
-    axis2Homed = false;
-    axis3Homed = false;
-    axis4Homed = false;
+    axisBLHomed = false;
+    axisBRHomed = false;
+    axisTRHomed = false;
+    axisTLHomed = false;
     
     tlX = 0;
     tlY = 1800;
@@ -123,29 +123,33 @@ void machine_init()
 }
 #endif
 
+void printToWeb (double precision){
+    grbl_sendf(CLIENT_ALL, "Calibration Precision: %fmm\n", precision);
+}
+
 void recomputePID(){
     //Stop everything but keep track of the encoder positions if we are idle or alarm. Unless doing calibration.
     
     if((sys.state == State::Idle || sys.state == State::Alarm) && !calibrationInProgress){
-        axis1.stop();
-        axis1.updateEncoderPosition();
-        axis2.stop();
-        axis2.updateEncoderPosition();
-        axis3.stop();
-        axis3.updateEncoderPosition();
-        axis4.stop();
-        axis4.updateEncoderPosition();
+        axisBL.stop();
+        axisBL.updateEncoderPosition();
+        axisBR.stop();
+        axisBR.updateEncoderPosition();
+        axisTR.stop();
+        axisTR.updateEncoderPosition();
+        axisTL.stop();
+        axisTL.updateEncoderPosition();
     }
     else{  //Position the axis
-        axis1.recomputePID();
-        axis2.recomputePID();
-        axis3.recomputePID();
-        axis4.recomputePID();
+        axisBL.recomputePID();
+        axisBR.recomputePID();
+        axisTR.recomputePID();
+        axisTL.recomputePID();
     }
 }
 
 //Upper left belt
-float computeL1(float x, float y){
+float computeBL(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
     y = centerY - y;
@@ -155,7 +159,7 @@ float computeL1(float x, float y){
 }
 
 //Upper right belt
-float computeL2(float x, float y){
+float computeBR(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
     y = centerY - y;
@@ -165,7 +169,7 @@ float computeL2(float x, float y){
 }
 
 //Lower right belt
-float computeL3(float x, float y){
+float computeTR(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
     y = centerY - y;
@@ -175,7 +179,7 @@ float computeL3(float x, float y){
 }
 
 //Lower left belt
-float computeL4(float x, float y){
+float computeTL(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
     y = centerY - y;
@@ -187,10 +191,10 @@ float computeL4(float x, float y){
 void setTargets(float xTarget, float yTarget, float zTarget){
     
     if(!calibrationInProgress){
-        axis1.setTarget(computeL1(xTarget, yTarget));
-        axis2.setTarget(computeL2(xTarget, yTarget));
-        axis3.setTarget(computeL3(xTarget, yTarget));
-        axis4.setTarget(computeL4(xTarget, yTarget));
+        axisBL.setTarget(computeBL(xTarget, yTarget));
+        axisBR.setTarget(computeBR(xTarget, yTarget));
+        axisTR.setTarget(computeTR(xTarget, yTarget));
+        axisTL.setTarget(computeTL(xTarget, yTarget));
     }
 }
 
@@ -198,15 +202,15 @@ void setTargets(float xTarget, float yTarget, float zTarget){
 //Runs the calibration sequence to determine the machine's dimensions
 void runCalibration(){
     
-    grbl_sendf(CLIENT_ALL, "Begining calibration\n");
+    grbl_sendf(CLIENT_ALL, "Beginning calibration\n");
     
     calibrationInProgress = true;
     
     //This is a hack and should be fixed, but it undoes any calls by the system to move these to (0,0)
-    axis1.setTarget(computeL1(0, -300));
-    axis2.setTarget(computeL2(0, -300));
-    axis3.setTarget(computeL3(0, -500));
-    axis4.setTarget(computeL4(0, -500));
+    axisBL.setTarget(computeBL(0, -300));
+    axisBR.setTarget(computeBR(0, -300));
+    axisTR.setTarget(computeTR(0, -500));
+    axisTL.setTarget(computeTL(0, -500));
     
     float lengths1[4];
     float lengths2[4];
@@ -217,18 +221,18 @@ void runCalibration(){
     takeMeasurementAvg(lengths1);//Repeat and throw away the first one
     takeMeasurementAvg(lengths1);
     
-    moveUp(computeL4(0, 0));
+    moveUp(computeTL(0, 0));
     
     takeMeasurementAvg(lengths2);
     
-    moveUp(computeL4(0, 500));
+    moveUp(computeTL(0, 500));
     
     takeMeasurementAvg(lengths3);
     
-    axis1.stop();
-    axis2.stop();
-    axis3.stop();
-    axis4.stop();
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
     
     //----------------------------------------------------------Do the computation
     
@@ -245,11 +249,11 @@ void runCalibration(){
     
     double results[9] = {0,0,0,0,0,0,0,0,0};
     
-    computeCalibration(measurements, results);
+    computeCalibration(measurements, results, printToWeb);
     
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[8]);
     
-    if(results[8] < 2){
+    if(results[8] < 1){
         grbl_sendf(CLIENT_ALL, "Calibration sucessfull with precision %f\n", results[8]);
         tlX = results[0];
         tlY = results[1];
@@ -268,7 +272,7 @@ void runCalibration(){
     
     
     //Move back to center
-    moveDown(computeL4(0, 0));
+    moveDown(computeTL(0, 0));
     
     calibrationInProgress = false;
     grbl_sendf(CLIENT_ALL, "Calibration finished\n");
@@ -282,8 +286,8 @@ void printMeasurements(float lengths[]){
 void lowerBeltsGoSlack(){
     unsigned long timeLastMoved1 = millis();
     unsigned long timeLastMoved2 = millis();
-    double lastPosition1 = axis1.angleSensor->getRotation();
-    double lastPosition2 = axis2.angleSensor->getRotation();
+    double lastPosition1 = axisBL.angleSensor->getRotation();
+    double lastPosition2 = axisBR.angleSensor->getRotation();
     double amtToMove1 = 0.1;
     double amtToMove2 = 0.1;
     
@@ -291,12 +295,12 @@ void lowerBeltsGoSlack(){
     
     while(millis()- startTime < 5000){
         //Set the lower axis to be compliant. PID is recomputed in comply()
-        axis1.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
-        axis2.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
+        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
+        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
         
         //The other axis hold position
-        axis3.recomputePID();
-        axis4.recomputePID();
+        axisTR.recomputePID();
+        axisTL.recomputePID();
         
         // Delay without blocking
         unsigned long time = millis();
@@ -338,28 +342,28 @@ void takeMeasurementAvg(float lengths[]){
 //Retract the lower belts until they pull tight and take a measurement
 void takeMeasurement(float lengths[]){
     
-    bool axis1Done = false;
-    bool axis2Done = false;
+    bool axisBLDone = false;
+    bool axisBRDone = false;
     
-    while(!axis1Done || !axis2Done){  //As long as one axis is still pulling
+    while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
         int currentThreshold = 2;
         
-        if(axis1.getCurrent() > currentThreshold || axis1Done){
-            axis1Done = true;
+        if(axisBL.getCurrent() > currentThreshold || axisBLDone){
+            axisBLDone = true;
             //grbl_sendf(CLIENT_ALL, "Axis 1 declaring stopping");
         }
         else{
-            axis1.setTarget(axis1.getTarget() - .2);
+            axisBL.setTarget(axisBL.getTarget() - .2);
         }
         
-        if(axis2.getCurrent() > currentThreshold || axis2Done){
-            axis2Done = true;
+        if(axisBR.getCurrent() > currentThreshold || axisBRDone){
+            axisBRDone = true;
             //grbl_sendf(CLIENT_ALL, "Axis 2 declaring stopping");
         }
         else{
-            axis2.setTarget(axis2.getTarget() - .2);
+            axisBR.setTarget(axisBR.getTarget() - .2);
         }
         
         // Delay without blocking
@@ -371,20 +375,20 @@ void takeMeasurement(float lengths[]){
         }
     }
     
-    axis1.setTarget(axis1.getPosition());
-    axis2.setTarget(axis2.getPosition());
-    //axis3.setTarget(axis3.getPosition());
-    //axis4.setTarget(axis4.getPosition());
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+    //axisTR.setTarget(axisTR.getPosition());
+    //axisTL.setTarget(axisTL.getPosition());
     
-    axis1.stop();
-    axis2.stop();
-    axis3.stop();
-    axis4.stop();
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
     
-    lengths[0] = axis1.getPosition()+beltEndExtension+armLength;
-    lengths[1] = axis2.getPosition()+beltEndExtension+armLength;
-    lengths[2] = axis3.getPosition()+beltEndExtension+armLength;
-    lengths[3] = axis4.getPosition()+beltEndExtension+armLength;
+    lengths[0] = axisBL.getPosition()+beltEndExtension+armLength;
+    lengths[1] = axisBR.getPosition()+beltEndExtension+armLength;
+    lengths[2] = axisTR.getPosition()+beltEndExtension+armLength;
+    lengths[3] = axisTL.getPosition()+beltEndExtension+armLength;
     
     //grbl_sendf(CLIENT_ALL, "Measured:\n%f \n%f \n%f \n%f \n",lengths[0], lengths[1], lengths[2], lengths[3]);
     
@@ -395,32 +399,32 @@ void takeMeasurement(float lengths[]){
 void moveUp(float targetLength){
     
     //The distance we need to move is the current position minus the target position
-    double distToRetract = axis3.getPosition() - targetLength;
+    double distToRetract = axisTR.getPosition() - targetLength;
     
     //Make the lower arms compliant and move retract the other two until we get to the target distance
     
     unsigned long timeLastMoved1 = millis();
     unsigned long timeLastMoved2 = millis();
-    double lastPosition1 = axis1.getPosition();
-    double lastPosition2 = axis2.getPosition();
+    double lastPosition1 = axisBL.getPosition();
+    double lastPosition2 = axisBR.getPosition();
     double amtToMove1 = 0.1;
     double amtToMove2 = 0.1;
     
     while(distToRetract > 0){
         
         //Set the lower axis to be compliant. PID is recomputed in comply()
-        axis1.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 1.5);
-        axis2.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 1.5);
+        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 1.5);
+        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 1.5);
         
         //Syncronize the two pulling axis
-        double axis3Boost = (axis3.getTarget() - axis4.getTarget())/20.0;
-        double axis4Boost = (axis4.getTarget() - axis3.getTarget())/20.0;
+        double axisTRBoost = (axisTR.getTarget() - axisTL.getTarget())/20.0;
+        double axisTLBoost = (axisTL.getTarget() - axisTR.getTarget())/20.0;
         
         //Pull in on the upper axis
-        axis3.setTarget((axis3.getTarget() - .05) - axis3Boost);
-        axis4.setTarget((axis4.getTarget() - .05) - axis4Boost);
-        axis3.recomputePID();
-        axis4.recomputePID();
+        axisTR.setTarget((axisTR.getTarget() - .05) - axisTRBoost);
+        axisTL.setTarget((axisTL.getTarget() - .05) - axisTLBoost);
+        axisTR.recomputePID();
+        axisTL.recomputePID();
         distToRetract = distToRetract - .05;
         
         // Delay without blocking
@@ -431,47 +435,47 @@ void moveUp(float targetLength){
         }
         
         //Force extend if the belt is getting taught
-        if(axis3.getCurrent() > 3){
+        if(axisTR.getCurrent() > 3){
            lastPosition2 = lastPosition2 - 2.0;
-           // grbl_sendf(CLIENT_ALL, "Axis 3 taught %f\n",axis3.getCurrent());
+           // grbl_sendf(CLIENT_ALL, "Axis 3 taught %f\n",axisTR.getCurrent());
         }
-        if(axis4.getCurrent() > 3){
+        if(axisTL.getCurrent() > 3){
            lastPosition1 = lastPosition1 - 2.0;
-           // grbl_sendf(CLIENT_ALL, "Axis 4 taught %f\n",axis4.getCurrent());
+           // grbl_sendf(CLIENT_ALL, "Axis 4 taught %f\n",axisTL.getCurrent());
         }
     }
     
-    axis1.setTarget(axis1.getPosition());
-    axis2.setTarget(axis2.getPosition());
-    axis3.setTarget(axis3.getPosition());
-    axis4.setTarget(axis4.getPosition());
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+    axisTR.setTarget(axisTR.getPosition());
+    axisTL.setTarget(axisTL.getPosition());
     
-    axis1.stop();
-    axis2.stop();
-    axis3.stop();
-    axis4.stop();
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
 }
 
 //Reposition the sled lower without knowing the machine dimensions
 void moveDown(float targetLength){
     
     //The distance we need to move is the current position minus the target position
-    double distToExtend = targetLength - axis3.getPosition();
+    double distToExtend = targetLength - axisTR.getPosition();
     
     grbl_sendf(CLIENT_ALL, "Dist to extend %f\n",distToExtend);
     
     while(distToExtend > 0){
         
         //Extend the upper axis
-        axis3.setTarget(axis3.getTarget() + .15);
-        axis4.setTarget(axis4.getTarget() + .15);
-        axis3.recomputePID();
-        axis4.recomputePID();
+        axisTR.setTarget(axisTR.getTarget() + .15);
+        axisTL.setTarget(axisTL.getTarget() + .15);
+        axisTR.recomputePID();
+        axisTL.recomputePID();
         distToExtend = distToExtend - .15;
         
         
-        axis1.stop();
-        axis2.stop();
+        axisBL.stop();
+        axisBR.stop();
         
         // Delay without blocking
         unsigned long time = millis();
@@ -481,19 +485,18 @@ void moveDown(float targetLength){
         }
     }
     
-    axis1.setTarget(axis1.getPosition());
-    axis2.setTarget(axis2.getPosition());
-    axis3.setTarget(axis3.getPosition());
-    axis4.setTarget(axis4.getPosition());
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+    axisTR.setTarget(axisTR.getPosition());
+    axisTL.setTarget(axisTL.getPosition());
     
-    axis1.stop();
-    axis2.stop();
-    axis3.stop();
-    axis4.stop();
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
     
     //Take some fake measurements to retract the lower arms fully
     float lengths[4];
-    takeMeasurementAvg(lengths);
     takeMeasurementAvg(lengths);
 }
 
@@ -531,29 +534,45 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 */
 bool user_defined_homing(uint8_t cycle_mask)
 {
+    grbl_sendf(CLIENT_ALL, "Begin test\n");
+    double measurements[][4] = {
+        //TL              TR           BL           BR
+        {1498.438354, 1524.880615, 2009.109009, 2008.947998},
+        {1701.625732, 1730.346680, 1702.729492, 1702.355103},
+        {1998.728882, 2019.778687, 1502.700928, 1502.914062}
+    };
+    
+    double results[9] = {0,0,0,0,0,0,0,0,0};
+    
+    computeCalibration(measurements, results, printToWeb);
+    
+    grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[8]);
+    
+    return true;
+  
   
   grbl_sendf(CLIENT_ALL, "Extending\n");
   
-  if(cycle_mask == 1){  //Upper left
-    axis4.testEncoder();
-    axis4Homed = axis4.retract(computeL4(0, -500));
+  if(cycle_mask == 1){  //Top left
+    axisTL.testEncoder();
+    axisTLHomed = axisTL.retract(computeTL(0, -500));
   }
-  else if(cycle_mask == 2){  //Upper right
-    axis3.testEncoder();
-    axis3Homed = axis3.retract(computeL3(0, -500));
+  else if(cycle_mask == 2){  //Top right
+    axisTR.testEncoder();
+    axisTRHomed = axisTR.retract(computeTR(0, -500));
   }
-  else if(cycle_mask == 4){ //Lower right
-    axis2.testEncoder();
-    if(axis1Homed && axis2Homed && axis3Homed && axis4Homed){
+  else if(cycle_mask == 4){ //Bottom right
+    axisBR.testEncoder();
+    if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
         runCalibration();
     }
       else{
-        axis2Homed = axis2.retract(computeL2(0, -300));
+        axisBRHomed = axisBR.retract(computeBR(0, -300));
     }
   }
-  else if(cycle_mask == 0){  //Lower left
-    axis1.testEncoder();
-    axis1Homed = axis1.retract(computeL1(0, -300));
+  else if(cycle_mask == 0){  //Bottom left
+    axisBL.testEncoder();
+    axisBLHomed = axisBL.retract(computeBL(0, -300));
   }
   
   return true;
