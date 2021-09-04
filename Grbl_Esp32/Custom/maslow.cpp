@@ -537,18 +537,20 @@ bool user_defined_homing(uint8_t cycle_mask)
 {
   grbl_sendf(CLIENT_ALL, "Extending\n");
   
+  Serial.println("In user homing");
+  
   grbl_sendf(CLIENT_ALL, "Begin test\n");
     double measurements[][4] = {
         //TL              TR           BL           BR
-        {1513.72,  1523.196, 2172.7,  2327.75},
-        {1708.83, 1700.00, 1786.18, 1900.66},
-        {2044.52,  2066.50, 1513.82, 1617.56},
-        {451.77, 2618.44, 1632.48, 3145.30},
-        {898.999, 2742.36,  1053.42, 2860.24},
-        {1497.23, 2972.14, 523.46, 2645.69},
-        {2617.25,  508.04,  2975.73,  1726.97},
-        {2817.45, 862.63, 2849.38, 1212.70},
-        {2971.27, 1475.26, 2607.85, 682.43}
+        {2172.76,2327.74,1513.27,1523.18},
+        {1786.16,1900.65,1708.83,1700},
+        {1513.80,1617.55,2044.52,2066.49},
+        {1632.48,3145.29,451.77,2618.43},
+        {1053.42,2860.24,898.99,2742.35},
+        {523.45,2645.69,1497.23,2972.13},
+        {2975.71,1726.96,2617.25,508.03},
+        {2849.37,1212.69,2817.45,862.62},
+        {2607.83,682.42,2971.27,1475.26}
     };
     
     double results[6] = {0,0,0,0,0,0};
@@ -557,8 +559,7 @@ bool user_defined_homing(uint8_t cycle_mask)
     
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
     
-    
-    grbl_sendf(CLIENT_ALL, "tlx: %f tly: %f trx: %f try: %f brx: %f \n", results[0], results[1], results[2], results[3], results[4]);
+    grbl_sendf(CLIENT_ALL, "tlx: %f tly: %f trx: %f try: %f brx: %f \n", results[0] - 30, results[1] - 1800, results[2] - 3000, results[3] - 1980, results[4] - 3010);
     
     return true;
   
