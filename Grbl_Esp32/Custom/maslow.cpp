@@ -105,11 +105,11 @@ void machine_init()
     
     tlX = 0;
     tlY = 1800;
-    trX = 2900;
+    trX = 3000;
     trY = 1800;
     blX = 0;
     blY = 0;
-    brX = 2900;
+    brX = 3000;
     brY = 0;
     
     double A = (trY - blY)/(trX-blX);
@@ -259,10 +259,11 @@ void runCalibration(){
         tlY = results[1];
         trX = results[2];
         trY = results[3];
-        blX = results[4];
-        blY = results[5];
-        brX = results[6];
-        brY = results[7];
+        blX = 0;
+        blY = 0;
+        brX = results[4];
+        brY = results[5];
+        grbl_sendf(CLIENT_ALL, "tlx: %f tly: %f trx: %f try: %f blx: %f bly: %f brx: %f bry: %f \n", tlX, tlY, trX, trY, blX, blY, brX, brY);
     }
     else{
         grbl_sendf(CLIENT_ALL, "Calibration failed: %f\n", results[8]);
@@ -534,24 +535,32 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 */
 bool user_defined_homing(uint8_t cycle_mask)
 {
-    grbl_sendf(CLIENT_ALL, "Begin test\n");
+  grbl_sendf(CLIENT_ALL, "Extending\n");
+  
+  grbl_sendf(CLIENT_ALL, "Begin test\n");
     double measurements[][4] = {
         //TL              TR           BL           BR
-        {1498.438354, 1524.880615, 2009.109009, 2008.947998},
-        {1701.625732, 1730.346680, 1702.729492, 1702.355103},
-        {1998.728882, 2019.778687, 1502.700928, 1502.914062}
+        {1513.72,  1523.196, 2172.7,  2327.75},
+        {1708.83, 1700.00, 1786.18, 1900.66},
+        {2044.52,  2066.50, 1513.82, 1617.56},
+        {451.77, 2618.44, 1632.48, 3145.30},
+        {898.999, 2742.36,  1053.42, 2860.24},
+        {1497.23, 2972.14, 523.46, 2645.69},
+        {2617.25,  508.04,  2975.73,  1726.97},
+        {2817.45, 862.63, 2849.38, 1212.70},
+        {2971.27, 1475.26, 2607.85, 682.43}
     };
     
-    double results[9] = {0,0,0,0,0,0,0,0,0};
+    double results[6] = {0,0,0,0,0,0};
     
     computeCalibration(measurements, results, printToWeb);
     
-    grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[8]);
+    grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
+    
+    
+    grbl_sendf(CLIENT_ALL, "tlx: %f tly: %f trx: %f try: %f brx: %f \n", results[0], results[1], results[2], results[3], results[4]);
     
     return true;
-  
-  
-  grbl_sendf(CLIENT_ALL, "Extending\n");
   
   if(cycle_mask == 1){  //Top left
     axisTL.testEncoder();
@@ -573,6 +582,10 @@ bool user_defined_homing(uint8_t cycle_mask)
   else if(cycle_mask == 0){  //Bottom left
     axisBL.testEncoder();
     axisBLHomed = axisBL.retract(computeBL(0, -300));
+  }
+  
+  if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
+      grbl_sendf(CLIENT_ALL, "All axis ready.\n");
   }
   
   return true;
