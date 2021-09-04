@@ -1483,8 +1483,10 @@ Error gc_execute_line(char* line, uint8_t client) {
             // and absolute and incremental modes.
             pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
             if (axis_command != AxisCommand::None) {
+                limitsCheckSoft(gc_block.values.xyz);
                 cartesian_to_motors(gc_block.values.xyz, pl_data, gc_state.position);
             }
+            limitsCheckSoft(coord_data);
             cartesian_to_motors(coord_data, pl_data, gc_state.position);
             memcpy(gc_state.position, coord_data, sizeof(gc_state.position));
             break;
@@ -1513,9 +1515,11 @@ Error gc_execute_line(char* line, uint8_t client) {
         if (axis_command == AxisCommand::MotionMode) {
             GCUpdatePos gc_update_pos = GCUpdatePos::Target;
             if (gc_state.modal.motion == Motion::Linear) {
+                limitsCheckSoft(gc_block.values.xyz);
                 cartesian_to_motors(gc_block.values.xyz, pl_data, gc_state.position);
             } else if (gc_state.modal.motion == Motion::Seek) {
                 pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
+                limitsCheckSoft(gc_block.values.xyz);
                 cartesian_to_motors(gc_block.values.xyz, pl_data, gc_state.position);
             } else if ((gc_state.modal.motion == Motion::CwArc) || (gc_state.modal.motion == Motion::CcwArc)) {
                 mc_arc(gc_block.values.xyz,

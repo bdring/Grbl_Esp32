@@ -73,6 +73,7 @@ enum_opt_t spindleTypes = {
     { "BESC", int8_t(SpindleType::BESC) },
     { "10V", int8_t(SpindleType::_10V) },
     { "H2A", int8_t(SpindleType::H2A) },
+    { "YL620", int8_t(SpindleType::YL620) },
     // clang-format on
 };
 
