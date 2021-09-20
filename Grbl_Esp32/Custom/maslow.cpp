@@ -51,12 +51,12 @@ TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
 esp_adc_cal_characteristics_t *adc_1_characterisitics = (esp_adc_cal_characteristics_t*) calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
-MotorUnit axisBL(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisBR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisTR(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisTL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
 
-//The xy cordinates of each of the anchor points
+//The xy coordinates of each of the anchor points
 float tlX;
 float tlY;
 float trX;
@@ -103,20 +103,17 @@ void machine_init()
     axisTRHomed = false;
     axisTLHomed = false;
     
-    tlX = 0;
-    tlY = 1800;
-    trX = 3000;
-    trY = 1800;
+    tlX = -14.860000;
+    tlY = 1832.250000;
+    trX = 2886.159912;
+    trY = 1830.819946;
     blX = 0;
     blY = 0;
-    brX = 3000;
+    brX = 2896.939941;
     brY = 0;
     
-    double A = (trY - blY)/(trX-blX);
-    double B = (brY-tlY)/(brX-tlX);
-    
-    centerX = (brY-(B*brX)+(A*trX)-trY)/(A-B);
-    centerY = A*(centerX - trX) + trY;
+    //Recompute the center XY
+    updateCenterXY();
     
     beltEndExtension = 30;
     armLength = 114;
@@ -148,13 +145,23 @@ void recomputePID(){
     }
 }
 
+//Updates where the center x and y positions are
+void updateCenterXY(){
+    
+    double A = (trY - blY)/(trX-blX);
+    double B = (brY-tlY)/(brX-tlX);
+    centerX = (brY-(B*brX)+(A*trX)-trY)/(A-B);
+    centerY = A*(centerX - trX) + trY;
+    
+}
+
 //Upper left belt
 float computeBL(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
-    y = centerY - y;
-    float a = tlX - x;
-    float b = tlY - y;
+    y = y + centerY;
+    float a = blX - x;
+    float b = blY - y;
     return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
@@ -162,9 +169,9 @@ float computeBL(float x, float y){
 float computeBR(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
-    y = centerY - y;
-    float a = trX - x;
-    float b = trY - y;
+    y = y + centerY;
+    float a = brX - x;
+    float b = brY - y;
     return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
@@ -172,9 +179,9 @@ float computeBR(float x, float y){
 float computeTR(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
-    y = centerY - y;
-    float a = brX - x;
-    float b = brY - y;
+    y = y + centerY;
+    float a = trX - x;
+    float b = trY - y;
     return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
@@ -182,9 +189,9 @@ float computeTR(float x, float y){
 float computeTL(float x, float y){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
-    y = centerY - y;
-    float a = blX - x;
-    float b = blY - y;
+    y = y + centerY;
+    float a = tlX - x;
+    float b = tlY - y;
     return sqrt(a*a+b*b) - (beltEndExtension+armLength);
 }
 
@@ -215,19 +222,51 @@ void runCalibration(){
     float lengths1[4];
     float lengths2[4];
     float lengths3[4];
+    float lengths4[4];
+    float lengths5[4];
+    float lengths6[4];
+    float lengths7[4];
+    float lengths8[4];
+    float lengths9[4];
     
     //------------------------------------------------------Take measurements
     
     takeMeasurementAvg(lengths1);//Repeat and throw away the first one
     takeMeasurementAvg(lengths1);
     
-    moveUp(computeTL(0, 0));
+    moveWithSlack(0, 0);
     
     takeMeasurementAvg(lengths2);
     
-    moveUp(computeTL(0, 500));
+    moveWithSlack(0, 500);
     
     takeMeasurementAvg(lengths3);
+    
+    moveWithSlack(-650, -400);
+    
+    takeMeasurementAvg(lengths4);
+    
+    moveWithSlack(-650, 0);
+    
+    takeMeasurementAvg(lengths5);
+    
+    moveWithSlack(-650, 500);
+    
+    takeMeasurementAvg(lengths6);
+    
+    moveWithSlack(650, -400);
+    
+    takeMeasurementAvg(lengths7);
+    
+    moveWithSlack(650, 0);
+    
+    takeMeasurementAvg(lengths8);
+    
+    moveWithSlack(650, 500);
+    
+    takeMeasurementAvg(lengths9);
+    
+    moveWithSlack(0, 0);  //Go back to the center. This will pull the lower belts tight too
     
     axisBL.stop();
     axisBR.stop();
@@ -239,22 +278,32 @@ void runCalibration(){
     printMeasurements(lengths1);
     printMeasurements(lengths2);
     printMeasurements(lengths3);
+    printMeasurements(lengths4);
+    printMeasurements(lengths5);
+    printMeasurements(lengths6);
+    printMeasurements(lengths7);
+    printMeasurements(lengths8);
+    printMeasurements(lengths9);
     
     double measurements[][4] = {
         //TL              TR           BL           BR
         {lengths1[3], lengths1[2], lengths1[0], lengths1[1]},
         {lengths2[3], lengths2[2], lengths2[0], lengths2[1]},
-        {lengths3[3], lengths3[2], lengths3[0], lengths3[1]}
+        {lengths3[3], lengths3[2], lengths3[0], lengths3[1]},
+        {lengths4[3], lengths4[2], lengths4[0], lengths4[1]},
+        {lengths5[3], lengths5[2], lengths5[0], lengths5[1]},
+        {lengths6[3], lengths6[2], lengths6[0], lengths6[1]},
+        {lengths7[3], lengths7[2], lengths7[0], lengths7[1]},
+        {lengths8[3], lengths8[2], lengths8[0], lengths8[1]},
+        {lengths9[3], lengths9[2], lengths9[0], lengths9[1]},
     };
-    
-    double results[9] = {0,0,0,0,0,0,0,0,0};
-    
+    double results[6] = {0,0,0,0,0,0};
     computeCalibration(measurements, results, printToWeb);
     
-    grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[8]);
+    grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
     
-    if(results[8] < 1){
-        grbl_sendf(CLIENT_ALL, "Calibration sucessfull with precision %f\n", results[8]);
+    if(results[5] < 2){
+        grbl_sendf(CLIENT_ALL, "Calibration successful with precision %f\n", results[5]);
         tlX = results[0];
         tlY = results[1];
         trX = results[2];
@@ -262,18 +311,25 @@ void runCalibration(){
         blX = 0;
         blY = 0;
         brX = results[4];
-        brY = results[5];
+        brY = 0;
+        updateCenterXY();
         grbl_sendf(CLIENT_ALL, "tlx: %f tly: %f trx: %f try: %f blx: %f bly: %f brx: %f bry: %f \n", tlX, tlY, trX, trY, blX, blY, brX, brY);
     }
     else{
-        grbl_sendf(CLIENT_ALL, "Calibration failed: %f\n", results[8]);
+        grbl_sendf(CLIENT_ALL, "Calibration failed: %f\n", results[5]);
     }
     
     //---------------------------------------------------------Finish
     
     
-    //Move back to center
-    moveDown(computeTL(0, 0));
+    //Move back to center after the results are applied
+    moveWithSlack(0, 0);
+    
+    //For safety we should pull tight here and verify that the results are basically what we expect before handing things over to the controller.
+    takeMeasurementAvg(lengths1);
+    takeMeasurementAvg(lengths1);
+    
+    grbl_sendf(CLIENT_ALL, "Measured bl: %f, br: %f. Expected bl: %f, br: %f\n", lengths1[0], lengths1[1], computeBL(0,0), computeBR(0,0));
     
     calibrationInProgress = false;
     grbl_sendf(CLIENT_ALL, "Calibration finished\n");
@@ -294,7 +350,7 @@ void lowerBeltsGoSlack(){
     
     unsigned long startTime = millis();
     
-    while(millis()- startTime < 5000){
+    while(millis()- startTime < 2500){
         //Set the lower axis to be compliant. PID is recomputed in comply()
         axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
         axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
@@ -370,7 +426,7 @@ void takeMeasurement(float lengths[]){
         // Delay without blocking
         unsigned long time = millis();
         unsigned long elapsedTime = millis()-time;
-        while(elapsedTime < 50){
+        while(elapsedTime < 25){
             elapsedTime = millis()-time;
             recomputePID();  //This recomputes the PID four all four servos
         }
@@ -396,11 +452,22 @@ void takeMeasurement(float lengths[]){
     return;
 }
 
-//Reposition the sled higher without knowing the machine dimensions
-void moveUp(float targetLength){
+//Reposition the sled without knowing the machine dimensions
+void moveWithSlack(float x, float y){
     
     //The distance we need to move is the current position minus the target position
-    double distToRetract = axisTR.getPosition() - targetLength;
+    double TLDist = axisTL.getPosition() - computeTL(x,y);
+    double TRDist = axisTR.getPosition() - computeTR(x,y);
+    
+    //Record which direction to move
+    double TLDir  = constrain(TLDist, -1, 1);
+    double TRDir  = constrain(TRDist, -1, 1);
+    
+    double stepSize = .1;
+    
+    //Only use positive dist for incrementing counter (float int conversion issue?)
+    TLDist = abs(TLDist);
+    TRDist = abs(TRDist);
     
     //Make the lower arms compliant and move retract the other two until we get to the target distance
     
@@ -411,22 +478,23 @@ void moveUp(float targetLength){
     double amtToMove1 = 0.1;
     double amtToMove2 = 0.1;
     
-    while(distToRetract > 0){
+    while(TLDist > 0 || TRDist > 0){
         
         //Set the lower axis to be compliant. PID is recomputed in comply()
         axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 1.5);
         axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 1.5);
         
-        //Syncronize the two pulling axis
-        double axisTRBoost = (axisTR.getTarget() - axisTL.getTarget())/20.0;
-        double axisTLBoost = (axisTL.getTarget() - axisTR.getTarget())/20.0;
-        
-        //Pull in on the upper axis
-        axisTR.setTarget((axisTR.getTarget() - .05) - axisTRBoost);
-        axisTL.setTarget((axisTL.getTarget() - .05) - axisTLBoost);
+        //Move the upper axis one step
+        if(TLDist > 0){
+            TLDist = TLDist - stepSize;
+            axisTL.setTarget((axisTL.getTarget() - (stepSize*TLDir)));
+        }
+        if(TRDist > 0){
+            TRDist = TRDist - stepSize;
+            axisTR.setTarget((axisTR.getTarget() - (stepSize*TRDir)));
+        }
         axisTR.recomputePID();
         axisTL.recomputePID();
-        distToRetract = distToRetract - .05;
         
         // Delay without blocking
         unsigned long time = millis();
@@ -455,50 +523,10 @@ void moveUp(float targetLength){
     axisBR.stop();
     axisTR.stop();
     axisTL.stop();
-}
-
-//Reposition the sled lower without knowing the machine dimensions
-void moveDown(float targetLength){
     
-    //The distance we need to move is the current position minus the target position
-    double distToExtend = targetLength - axisTR.getPosition();
-    
-    grbl_sendf(CLIENT_ALL, "Dist to extend %f\n",distToExtend);
-    
-    while(distToExtend > 0){
-        
-        //Extend the upper axis
-        axisTR.setTarget(axisTR.getTarget() + .15);
-        axisTL.setTarget(axisTL.getTarget() + .15);
-        axisTR.recomputePID();
-        axisTL.recomputePID();
-        distToExtend = distToExtend - .15;
-        
-        
-        axisBL.stop();
-        axisBR.stop();
-        
-        // Delay without blocking
-        unsigned long time = millis();
-        unsigned long elapsedTime = millis()-time;
-        while(elapsedTime < 10){
-            elapsedTime = millis()-time;
-        }
-    }
-    
-    axisBL.setTarget(axisBL.getPosition());
-    axisBR.setTarget(axisBR.getPosition());
-    axisTR.setTarget(axisTR.getPosition());
-    axisTL.setTarget(axisTL.getPosition());
-    
-    axisBL.stop();
-    axisBR.stop();
-    axisTR.stop();
-    axisTL.stop();
-    
-    //Take some fake measurements to retract the lower arms fully
-    float lengths[4];
-    takeMeasurementAvg(lengths);
+    //Take a measurement to pull things taught
+    float lengths1[4];
+    takeMeasurementAvg(lengths1);
 }
 
 float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower){
@@ -550,7 +578,7 @@ bool user_defined_homing(uint8_t cycle_mask)
     if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
         runCalibration();
     }
-      else{
+    else{
         axisBRHomed = axisBR.retract(computeBR(0, -300));
     }
   }
