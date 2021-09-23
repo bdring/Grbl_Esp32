@@ -386,43 +386,43 @@
 
 // ========== Motor current (SPI Drivers ) =============
 #ifndef DEFAULT_X_CURRENT
-#    define DEFAULT_X_CURRENT 0.25  // $140 current in amps (extended set)
+#    define DEFAULT_X_CURRENT 0.8  // $140 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Y_CURRENT
-#    define DEFAULT_Y_CURRENT 0.25  // $141 current in amps (extended set)
+#    define DEFAULT_Y_CURRENT 0.8  // $141 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Z_CURRENT
-#    define DEFAULT_Z_CURRENT 0.25  // $142 current in amps (extended set)
+#    define DEFAULT_Z_CURRENT 0.8  // $142 current in amps (extended set)
 #endif
 #ifndef DEFAULT_A_CURRENT
-#    define DEFAULT_A_CURRENT 0.25  // $143 current in amps (extended set)
+#    define DEFAULT_A_CURRENT 0.8  // $143 current in amps (extended set)
 #endif
 #ifndef DEFAULT_B_CURRENT
-#    define DEFAULT_B_CURRENT 0.25  // $144 current in amps (extended set)
+#    define DEFAULT_B_CURRENT 0.8  // $144 current in amps (extended set)
 #endif
 #ifndef DEFAULT_C_CURRENT
-#    define DEFAULT_C_CURRENT 0.25  // $145 current in amps (extended set)
+#    define DEFAULT_C_CURRENT 0.8  // $145 current in amps (extended set)
 #endif
 
 // ========== Motor hold current (SPI Drivers ) =============
 
 #ifndef DEFAULT_X_HOLD_CURRENT
-#    define DEFAULT_X_HOLD_CURRENT 0.125  // $150 current in amps (extended set)
+#    define DEFAULT_X_HOLD_CURRENT 0.4  // $150 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Y_HOLD_CURRENT
-#    define DEFAULT_Y_HOLD_CURRENT 0.125  // $151 current in amps (extended set)
+#    define DEFAULT_Y_HOLD_CURRENT 0.4  // $151 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Z_HOLD_CURRENT
-#    define DEFAULT_Z_HOLD_CURRENT 0.125  // $152 current in amps (extended set)
+#    define DEFAULT_Z_HOLD_CURRENT 0.4  // $152 current in amps (extended set)
 #endif
 #ifndef DEFAULT_A_HOLD_CURRENT
-#    define DEFAULT_A_HOLD_CURRENT 0.125  // $153 current in amps (extended set)
+#    define DEFAULT_A_HOLD_CURRENT 0.4  // $153 current in amps (extended set)
 #endif
 #ifndef DEFAULT_B_HOLD_CURRENT
-#    define DEFAULT_B_HOLD_CURRENT 0.125  // $154 current in amps (extended set)
+#    define DEFAULT_B_HOLD_CURRENT 0.4  // $154 current in amps (extended set)
 #endif
 #ifndef DEFAULT_C_HOLD_CURRENT
-#    define DEFAULT_C_HOLD_CURRENT 0.125  // $154 current in amps (extended set)
+#    define DEFAULT_C_HOLD_CURRENT 0.4  // $154 current in amps (extended set)
 #endif
 
 // ========== Microsteps (SPI Drivers ) ================
