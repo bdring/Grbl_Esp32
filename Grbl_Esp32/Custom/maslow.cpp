@@ -103,13 +103,13 @@ void machine_init()
     axisTRHomed = false;
     axisTLHomed = false;
     
-    tlX = -14.860000;
-    tlY = 1832.250000;
-    trX = 2886.159912;
-    trY = 1830.819946;
+    tlX = -8.339;
+    tlY = 1828.17;
+    trX = 2870.62;
+    trY = 1829.05;
     blX = 0;
     blY = 0;
-    brX = 2896.939941;
+    brX = 2891.36;
     brY = 0;
     
     //Recompute the center XY
@@ -298,7 +298,7 @@ void runCalibration(){
         {lengths9[3], lengths9[2], lengths9[0], lengths9[1]},
     };
     double results[6] = {0,0,0,0,0,0};
-    computeCalibration(measurements, results, printToWeb);
+    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX);
     
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
     
@@ -329,7 +329,10 @@ void runCalibration(){
     takeMeasurementAvg(lengths1);
     takeMeasurementAvg(lengths1);
     
-    grbl_sendf(CLIENT_ALL, "Measured bl: %f, br: %f. Expected bl: %f, br: %f\n", lengths1[0], lengths1[1], computeBL(0,0), computeBR(0,0));
+    double blError = (lengths1[0]-(beltEndExtension+armLength))-computeBL(0,0);
+    double brError = (lengths1[1]-(beltEndExtension+armLength))-computeBR(0,0);
+    
+    grbl_sendf(CLIENT_ALL, "Lower belt length mismatch: bl: %f, br: %f\n", blError, brError);
     
     calibrationInProgress = false;
     grbl_sendf(CLIENT_ALL, "Calibration finished\n");
@@ -337,7 +340,7 @@ void runCalibration(){
 }
 
 void printMeasurements(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "BL:%f   BR:%f   TR:%f   TL:%f\n", lengths[0], lengths[1], lengths[2], lengths[3]);
+    grbl_sendf(CLIENT_ALL, "{bl:%f,   br:%f,   tr:%f,   tl:%f},\n", lengths[0], lengths[1], lengths[2], lengths[3]);
 }
 
 void lowerBeltsGoSlack(){
@@ -368,6 +371,22 @@ void lowerBeltsGoSlack(){
     }
 }
 
+void printMeasurementMetrics(double avg, double m1, double m2, double m3, double m4, double m5){
+    
+    
+    double m1Variation = myAbs(avg - m1);
+    double m2Variation = myAbs(avg - m1);
+    double m3Variation = myAbs(avg - m1);
+    double m4Variation = myAbs(avg - m1);
+    double m5Variation = myAbs(avg - m1);
+    
+    double maxDeviation = max(max(max(m1Variation, m2Variation), max(m3Variation, m4Variation)), m5Variation);
+    
+    double avgDeviation = (m1Variation + m2Variation + m3Variation + m4Variation + m5Variation)/5.0;
+    
+    grbl_sendf(CLIENT_ALL, "Max deviation: %f, Avg deviation: %f\n", maxDeviation, avgDeviation);
+}
+
 //Takes 5 measurements and computes the average of them
 void takeMeasurementAvg(float lengths[]){
     
@@ -394,6 +413,12 @@ void takeMeasurementAvg(float lengths[]){
     lengths[1] = (lengths1[1]+lengths2[1]+lengths3[1]+lengths4[1]+lengths5[1])/5.0;
     lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
     lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
+    
+    grbl_sendf(CLIENT_ALL, "Measurement taken.");
+    printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
+    printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
+    printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
+    printMeasurementMetrics(lengths[3], lengths1[3], lengths2[3], lengths3[3], lengths4[3], lengths5[3]);
 }
 
 //Retract the lower belts until they pull tight and take a measurement
@@ -405,7 +430,7 @@ void takeMeasurement(float lengths[]){
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        int currentThreshold = 2;
+        int currentThreshold = 6;
         
         if(axisBL.getCurrent() > currentThreshold || axisBLDone){
             axisBLDone = true;
@@ -483,6 +508,8 @@ void moveWithSlack(float x, float y){
         //Set the lower axis to be compliant. PID is recomputed in comply()
         axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 1.5);
         axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 1.5);
+        
+        grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %l\n", lastPosition2, amtToMove2, timeLastMoved2);
         
         //Move the upper axis one step
         if(TLDist > 0){
