@@ -51,20 +51,24 @@ TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
 esp_adc_cal_characteristics_t *adc_1_characterisitics = (esp_adc_cal_characteristics_t*) calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
-MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
 
 //The xy coordinates of each of the anchor points
 float tlX;
 float tlY;
+float tlZ;
 float trX;
 float trY;
+float trZ;
 float blX;
 float blY;
+float blZ;
 float brX;
 float brY;
+float brZ;
 float centerX;
 float centerY;
 
@@ -105,12 +109,16 @@ void machine_init()
     
     tlX = -8.339;
     tlY = 1828.17;
+    tlZ = 96;
     trX = 2870.62;
     trY = 1829.05;
+    trZ = 131;
     blX = 0;
     blY = 0;
+    blZ = 111;
     brX = 2891.36;
     brY = 0;
+    brZ = 172;
     
     //Recompute the center XY
     updateCenterXY();
@@ -122,6 +130,10 @@ void machine_init()
 
 void printToWeb (double precision){
     grbl_sendf(CLIENT_ALL, "Calibration Precision: %fmm\n", precision);
+}
+
+void printStall (double variable){
+    grbl_sendf(CLIENT_ALL, "Motor stalled at: %f\n", variable);
 }
 
 void recomputePID(){
@@ -157,42 +169,46 @@ void updateCenterXY(){
 
 //Upper left belt
 float computeBL(float x, float y){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = blX - x;
     float b = blY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - blZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Upper right belt
 float computeBR(float x, float y){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = brX - x;
     float b = brY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - brZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Lower right belt
 float computeTR(float x, float y){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = trX - x;
     float b = trY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - trZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Lower left belt
 float computeTL(float x, float y){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = tlX - x;
     float b = tlY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - tlZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
@@ -268,6 +284,7 @@ void runCalibration(){
     
     moveWithSlack(0, 0);  //Go back to the center. This will pull the lower belts tight too
     
+    grbl_sendf(CLIENT_ALL, "Stopping Motors\n");
     axisBL.stop();
     axisBR.stop();
     axisTR.stop();
@@ -298,7 +315,7 @@ void runCalibration(){
         {lengths9[3], lengths9[2], lengths9[0], lengths9[1]},
     };
     double results[6] = {0,0,0,0,0,0};
-    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX);
+    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX, tlZ, trZ, blZ, brZ);
     
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
     
@@ -355,8 +372,8 @@ void lowerBeltsGoSlack(){
     
     while(millis()- startTime < 2500){
         //Set the lower axis to be compliant. PID is recomputed in comply()
-        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
-        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
+        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 300);
+        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 300);
         
         //The other axis hold position
         axisTR.recomputePID();
@@ -365,7 +382,7 @@ void lowerBeltsGoSlack(){
         // Delay without blocking
         unsigned long time = millis();
         unsigned long elapsedTime = millis()-time;
-        while(elapsedTime < 10){
+        while(elapsedTime < 50){
             elapsedTime = millis()-time;
         }
     }
@@ -382,13 +399,13 @@ void printMeasurementMetrics(double avg, double m1, double m2, double m3, double
     
     double maxDeviation = max(max(max(m1Variation, m2Variation), max(m3Variation, m4Variation)), m5Variation);
     
-    double avgDeviation = (m1Variation + m2Variation + m3Variation + m4Variation + m5Variation)/5.0;
-    
-    grbl_sendf(CLIENT_ALL, "Max deviation: %f, Avg deviation: %f\n", maxDeviation, avgDeviation);
+    grbl_sendf(CLIENT_ALL, "Max deviation: %f\n", maxDeviation);
 }
 
 //Takes 5 measurements and computes the average of them
 void takeMeasurementAvg(float lengths[]){
+    
+    grbl_sendf(CLIENT_ALL, "Beginning to take a measurement\n");
     
     //Where our five measurements will be stored
     float lengths1[4];
@@ -423,6 +440,8 @@ void takeMeasurementAvg(float lengths[]){
 
 //Retract the lower belts until they pull tight and take a measurement
 void takeMeasurement(float lengths[]){
+    
+    grbl_sendf(CLIENT_ALL, "Taking a measurement\n");
     
     bool axisBLDone = false;
     bool axisBRDone = false;
@@ -480,6 +499,8 @@ void takeMeasurement(float lengths[]){
 //Reposition the sled without knowing the machine dimensions
 void moveWithSlack(float x, float y){
     
+    grbl_sendf(CLIENT_ALL, "Moving with slack to %f , %f \n", x, y);
+    
     //The distance we need to move is the current position minus the target position
     double TLDist = axisTL.getPosition() - computeTL(x,y);
     double TRDist = axisTR.getPosition() - computeTR(x,y);
@@ -488,7 +509,7 @@ void moveWithSlack(float x, float y){
     double TLDir  = constrain(TLDist, -1, 1);
     double TRDir  = constrain(TRDist, -1, 1);
     
-    double stepSize = .1;
+    double stepSize = .5;
     
     //Only use positive dist for incrementing counter (float int conversion issue?)
     TLDist = abs(TLDist);
@@ -506,10 +527,10 @@ void moveWithSlack(float x, float y){
     while(TLDist > 0 || TRDist > 0){
         
         //Set the lower axis to be compliant. PID is recomputed in comply()
-        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 1.5);
-        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 1.5);
+        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 300);
+        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 300);
         
-        grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %l\n", lastPosition2, amtToMove2, timeLastMoved2);
+        grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %lu\n", lastPosition2, amtToMove2, timeLastMoved2);
         
         //Move the upper axis one step
         if(TLDist > 0){
@@ -526,19 +547,19 @@ void moveWithSlack(float x, float y){
         // Delay without blocking
         unsigned long time = millis();
         unsigned long elapsedTime = millis()-time;
-        while(elapsedTime < 10){
+        while(elapsedTime < 50){
             elapsedTime = millis()-time;
         }
         
         //Force extend if the belt is getting taught
-        if(axisTR.getCurrent() > 3){
-           lastPosition2 = lastPosition2 - 2.0;
+        // if(axisTR.getCurrent() > 3){
+           // lastPosition2 = lastPosition2 - 2.0;
            // grbl_sendf(CLIENT_ALL, "Axis 3 taught %f\n",axisTR.getCurrent());
-        }
-        if(axisTL.getCurrent() > 3){
-           lastPosition1 = lastPosition1 - 2.0;
+        // }
+        // if(axisTL.getCurrent() > 3){
+           // lastPosition1 = lastPosition1 - 2.0;
            // grbl_sendf(CLIENT_ALL, "Axis 4 taught %f\n",axisTL.getCurrent());
-        }
+        // }
     }
     
     axisBL.setTarget(axisBL.getPosition());
