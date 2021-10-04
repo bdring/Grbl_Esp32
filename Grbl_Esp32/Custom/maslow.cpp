@@ -109,16 +109,16 @@ void machine_init()
     
     tlX = -8.339;
     tlY = 1828.17;
-    tlZ = 0;
+    tlZ = 96;
     trX = 2870.62;
     trY = 1829.05;
-    trZ = 0;
+    trZ = 131;
     blX = 0;
     blY = 0;
-    blZ = 0;
+    blZ = 111;
     brX = 2891.36;
     brY = 0;
-    brZ = 0;
+    brZ = 172;
     
     //Recompute the center XY
     updateCenterXY();
@@ -254,31 +254,31 @@ void runCalibration(){
     
     takeMeasurementAvg(lengths2);
     
-    moveWithSlack(0, 300);
+    moveWithSlack(0, 500);
     
     takeMeasurementAvg(lengths3);
     
-    moveWithSlack(-450, -200);
+    moveWithSlack(-650, -400);
     
     takeMeasurementAvg(lengths4);
     
-    moveWithSlack(-450, 0);
+    moveWithSlack(-650, 0);
     
     takeMeasurementAvg(lengths5);
     
-    moveWithSlack(-450, 200);
+    moveWithSlack(-650, 500);
     
     takeMeasurementAvg(lengths6);
     
-    moveWithSlack(450, -200);
+    moveWithSlack(650, -400);
     
     takeMeasurementAvg(lengths7);
     
-    moveWithSlack(450, 0);
+    moveWithSlack(650, 0);
     
     takeMeasurementAvg(lengths8);
     
-    moveWithSlack(450, 200);
+    moveWithSlack(650, 500);
     
     takeMeasurementAvg(lengths9);
     
@@ -344,6 +344,7 @@ void runCalibration(){
     
     //For safety we should pull tight here and verify that the results are basically what we expect before handing things over to the controller.
     takeMeasurementAvg(lengths1);
+    takeMeasurementAvg(lengths1);
     
     double blError = (lengths1[0]-(beltEndExtension+armLength))-computeBL(0,0);
     double brError = (lengths1[1]-(beltEndExtension+armLength))-computeBR(0,0);
@@ -360,28 +361,6 @@ void printMeasurements(float lengths[]){
 }
 
 void lowerBeltsGoSlack(){
-    
-    unsigned long time = millis();
-    unsigned long elapsedTime = millis()-time;
-    while(elapsedTime < 500){
-        elapsedTime = millis()-time;
-        axisBL.fullOut();
-        axisBL.updateEncoderPosition();
-        axisBR.fullOut();
-        axisBR.updateEncoderPosition();
-        
-        //The other axis hold position
-        axisTR.recomputePID();
-        axisTL.recomputePID();
-    }
-    
-    //reset where we should be
-    axisBL.setTarget(axisBL.getPosition());
-    axisBR.setTarget(axisBR.getPosition());
-    
-    axisBL.stop();
-    axisBR.stop();
-    
     unsigned long timeLastMoved1 = millis();
     unsigned long timeLastMoved2 = millis();
     double lastPosition1 = axisBL.angleSensor->getRotation();
@@ -401,10 +380,10 @@ void lowerBeltsGoSlack(){
         axisTL.recomputePID();
         
         // Delay without blocking
-        unsigned long time2 = millis();
-        unsigned long elapsedTime2 = millis()-time2;
-        while(elapsedTime2 < 50){
-            elapsedTime2 = millis()-time2;
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 50){
+            elapsedTime = millis()-time;
         }
     }
 }
@@ -437,8 +416,6 @@ void takeMeasurementAvg(float lengths[]){
     
     takeMeasurement(lengths1);
     lowerBeltsGoSlack();
-    takeMeasurement(lengths1);
-    lowerBeltsGoSlack();
     takeMeasurement(lengths1);  //Repeat the first measurement to discard the one before everything was pulled taught
     lowerBeltsGoSlack();
     takeMeasurement(lengths2);
@@ -448,14 +425,13 @@ void takeMeasurementAvg(float lengths[]){
     takeMeasurement(lengths4);
     lowerBeltsGoSlack();
     takeMeasurement(lengths5);
-    lowerBeltsGoSlack();
     
     lengths[0] = (lengths1[0]+lengths2[0]+lengths3[0]+lengths4[0]+lengths5[0])/5.0;
     lengths[1] = (lengths1[1]+lengths2[1]+lengths3[1]+lengths4[1]+lengths5[1])/5.0;
     lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
     lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
     
-    grbl_sendf(CLIENT_ALL, "Measurement taken.\n");
+    grbl_sendf(CLIENT_ALL, "Measurement taken.");
     printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
     printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
     printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
@@ -473,7 +449,7 @@ void takeMeasurement(float lengths[]){
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        int currentThreshold = 12;
+        int currentThreshold = 6;
         
         if(axisBL.getCurrent() > currentThreshold || axisBLDone){
             axisBLDone = true;
@@ -554,7 +530,7 @@ void moveWithSlack(float x, float y){
         axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 300);
         axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 300);
         
-        //grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %lu\n", lastPosition2, amtToMove2, timeLastMoved2);
+        grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %lu\n", lastPosition2, amtToMove2, timeLastMoved2);
         
         //Move the upper axis one step
         if(TLDist > 0){
@@ -595,6 +571,10 @@ void moveWithSlack(float x, float y){
     axisBR.stop();
     axisTR.stop();
     axisTL.stop();
+    
+    //Take a measurement to pull things taught
+    float lengths1[4];
+    takeMeasurementAvg(lengths1);
 }
 
 float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower){
