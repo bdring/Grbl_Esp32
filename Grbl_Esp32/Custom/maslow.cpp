@@ -51,10 +51,10 @@ TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
 esp_adc_cal_characteristics_t *adc_1_characterisitics = (esp_adc_cal_characteristics_t*) calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
-MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
 
 //The xy coordinates of each of the anchor points
 float tlX;
@@ -298,7 +298,7 @@ void runCalibration(){
         {lengths9[3], lengths9[2], lengths9[0], lengths9[1]},
     };
     double results[6] = {0,0,0,0,0,0};
-    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX);
+    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX, 0, 0, 0, 0);
     
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
     
@@ -341,6 +341,10 @@ void runCalibration(){
 
 void printMeasurements(float lengths[]){
     grbl_sendf(CLIENT_ALL, "{bl:%f,   br:%f,   tr:%f,   tl:%f},\n", lengths[0], lengths[1], lengths[2], lengths[3]);
+}
+
+void printStall (double variable){
+    grbl_sendf(CLIENT_ALL, "Motor stalled at: %f\n", variable);
 }
 
 void lowerBeltsGoSlack(){
