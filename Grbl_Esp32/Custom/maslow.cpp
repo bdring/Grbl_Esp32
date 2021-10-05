@@ -238,31 +238,31 @@ void runCalibration(){
     
     takeMeasurementAvg(lengths2);
     
-    moveWithSlack(0, 500);
+    moveWithSlack(0, 200);
     
     takeMeasurementAvg(lengths3);
     
-    moveWithSlack(-650, -400);
+    moveWithSlack(-200, -200);
     
     takeMeasurementAvg(lengths4);
     
-    moveWithSlack(-650, 0);
+    moveWithSlack(-200, 0);
     
     takeMeasurementAvg(lengths5);
     
-    moveWithSlack(-650, 500);
+    moveWithSlack(-200, 200);
     
     takeMeasurementAvg(lengths6);
     
-    moveWithSlack(650, -400);
+    moveWithSlack(200, -200);
     
     takeMeasurementAvg(lengths7);
     
-    moveWithSlack(650, 0);
+    moveWithSlack(200, 0);
     
     takeMeasurementAvg(lengths8);
     
-    moveWithSlack(650, 500);
+    moveWithSlack(200, 200);
     
     takeMeasurementAvg(lengths9);
     
@@ -418,7 +418,7 @@ void takeMeasurementAvg(float lengths[]){
     lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
     lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
     
-    grbl_sendf(CLIENT_ALL, "Measurement taken.");
+    grbl_sendf(CLIENT_ALL, "Measurement taken.\n");
     printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
     printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
     printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
@@ -434,7 +434,7 @@ void takeMeasurement(float lengths[]){
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        int currentThreshold = 6;
+        int currentThreshold = 12;
         
         if(axisBL.getCurrent() > currentThreshold || axisBLDone){
             axisBLDone = true;
@@ -510,10 +510,10 @@ void moveWithSlack(float x, float y){
     while(TLDist > 0 || TRDist > 0){
         
         //Set the lower axis to be compliant. PID is recomputed in comply()
-        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 1.5);
-        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 1.5);
+        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 300);
+        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 300);
         
-        grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %l\n", lastPosition2, amtToMove2, timeLastMoved2);
+        // grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %l\n", lastPosition2, amtToMove2, timeLastMoved2);
         
         //Move the upper axis one step
         if(TLDist > 0){
@@ -532,16 +532,6 @@ void moveWithSlack(float x, float y){
         unsigned long elapsedTime = millis()-time;
         while(elapsedTime < 10){
             elapsedTime = millis()-time;
-        }
-        
-        //Force extend if the belt is getting taught
-        if(axisTR.getCurrent() > 3){
-           lastPosition2 = lastPosition2 - 2.0;
-           // grbl_sendf(CLIENT_ALL, "Axis 3 taught %f\n",axisTR.getCurrent());
-        }
-        if(axisTL.getCurrent() > 3){
-           lastPosition1 = lastPosition1 - 2.0;
-           // grbl_sendf(CLIENT_ALL, "Axis 4 taught %f\n",axisTL.getCurrent());
         }
     }
     
