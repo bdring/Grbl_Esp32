@@ -59,12 +59,16 @@ MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, a
 //The xy coordinates of each of the anchor points
 float tlX;
 float tlY;
+float tlZ;
 float trX;
 float trY;
+float trZ;
 float blX;
 float blY;
+float blZ;
 float brX;
 float brY;
+float brZ;
 float centerX;
 float centerY;
 
@@ -105,12 +109,16 @@ void machine_init()
     
     tlX = -8.339;
     tlY = 1828.17;
+    tlZ = 96;
     trX = 2870.62;
     trY = 1829.05;
+    trZ = 131;
     blX = 0;
     blY = 0;
+    blZ = 111;
     brX = 2891.36;
     brY = 0;
+    brZ = 172;
     
     //Recompute the center XY
     updateCenterXY();
@@ -162,7 +170,8 @@ float computeBL(float x, float y){
     y = y + centerY;
     float a = blX - x;
     float b = blY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - blZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Upper right belt
@@ -172,27 +181,30 @@ float computeBR(float x, float y){
     y = y + centerY;
     float a = brX - x;
     float b = brY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - brZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Lower right belt
 float computeTR(float x, float y){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = trX - x;
     float b = trY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - trZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Lower left belt
 float computeTL(float x, float y){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = tlX - x;
     float b = tlY - y;
-    return sqrt(a*a+b*b) - (beltEndExtension+armLength);
+    float c = 0.0 - tlZ;
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
@@ -298,7 +310,7 @@ void runCalibration(){
         {lengths9[3], lengths9[2], lengths9[0], lengths9[1]},
     };
     double results[6] = {0,0,0,0,0,0};
-    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX, 0, 0, 0, 0);
+    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX, tlZ, trZ, blZ, brZ);
     
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
     
@@ -393,6 +405,7 @@ void printMeasurementMetrics(double avg, double m1, double m2, double m3, double
 
 //Takes 5 measurements and computes the average of them
 void takeMeasurementAvg(float lengths[]){
+    grbl_sendf(CLIENT_ALL, "Begining to take averaged measurement.\n");
     
     //Where our five measurements will be stored
     float lengths1[4];
@@ -418,7 +431,6 @@ void takeMeasurementAvg(float lengths[]){
     lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
     lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
     
-    grbl_sendf(CLIENT_ALL, "Measurement taken.\n");
     printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
     printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
     printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
@@ -427,7 +439,7 @@ void takeMeasurementAvg(float lengths[]){
 
 //Retract the lower belts until they pull tight and take a measurement
 void takeMeasurement(float lengths[]){
-    
+    grbl_sendf(CLIENT_ALL, "Taking measurement.\n");
     bool axisBLDone = false;
     bool axisBRDone = false;
     
@@ -484,6 +496,8 @@ void takeMeasurement(float lengths[]){
 //Reposition the sled without knowing the machine dimensions
 void moveWithSlack(float x, float y){
     
+    grbl_sendf(CLIENT_ALL, "Moving to (%f, %f) with slack lower belts\n", x, y);
+    
     //The distance we need to move is the current position minus the target position
     double TLDist = axisTL.getPosition() - computeTL(x,y);
     double TRDist = axisTR.getPosition() - computeTR(x,y);
@@ -492,7 +506,7 @@ void moveWithSlack(float x, float y){
     double TLDir  = constrain(TLDist, -1, 1);
     double TRDir  = constrain(TRDist, -1, 1);
     
-    double stepSize = .1;
+    double stepSize = .15;
     
     //Only use positive dist for incrementing counter (float int conversion issue?)
     TLDist = abs(TLDist);
