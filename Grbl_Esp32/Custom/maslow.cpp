@@ -369,7 +369,7 @@ void lowerBeltsGoSlack(){
     
     unsigned long startTime = millis();
     
-    while(millis()- startTime < 2500){
+    while(millis()- startTime < 1200){
         //Set the lower axis to be compliant. PID is recomputed in comply()
         axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
         axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
@@ -518,8 +518,8 @@ void moveWithSlack(float x, float y){
     unsigned long timeLastMoved2 = millis();
     double lastPosition1 = axisBL.getPosition();
     double lastPosition2 = axisBR.getPosition();
-    double amtToMove1 = 0.1;
-    double amtToMove2 = 0.1;
+    double amtToMove1 = 100;
+    double amtToMove2 = 100;
     
     while(TLDist > 0 || TRDist > 0){
         
