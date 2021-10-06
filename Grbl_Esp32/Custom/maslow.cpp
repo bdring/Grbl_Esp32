@@ -225,11 +225,11 @@ void runCalibration(){
     
     calibrationInProgress = true;
     
-    //This is a hack and should be fixed, but it undoes any calls by the system to move these to (0,0)
-    axisBL.setTarget(computeBL(0, -300));
-    axisBR.setTarget(computeBR(0, -300));
-    axisTR.setTarget(computeTR(0, -500));
-    axisTL.setTarget(computeTL(0, -500));
+    //Undoes any calls by the system to move these to (0,0)
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+    axisTR.setTarget(axisTR.getPosition());
+    axisTL.setTarget(axisTL.getPosition());
     
     float lengths1[4];
     float lengths2[4];
@@ -246,27 +246,27 @@ void runCalibration(){
     takeMeasurementAvg(lengths1);//Repeat and throw away the first one
     takeMeasurementAvg(lengths1);
     
-    moveWithSlack(0, 0);
+    moveWithSlack(-200, 0);
     
     takeMeasurementAvg(lengths2);
     
-    moveWithSlack(0, 200);
+    moveWithSlack(-200, -200);
     
     takeMeasurementAvg(lengths3);
     
-    moveWithSlack(-200, -200);
+    moveWithSlack(0, 200);
     
     takeMeasurementAvg(lengths4);
     
-    moveWithSlack(-200, 0);
+    moveWithSlack(0, 0);
     
     takeMeasurementAvg(lengths5);
     
-    moveWithSlack(-200, 200);
+    moveWithSlack(0, -200);
     
     takeMeasurementAvg(lengths6);
     
-    moveWithSlack(200, -200);
+    moveWithSlack(200, 200);
     
     takeMeasurementAvg(lengths7);
     
@@ -274,7 +274,7 @@ void runCalibration(){
     
     takeMeasurementAvg(lengths8);
     
-    moveWithSlack(200, 200);
+    moveWithSlack(200, -200);
     
     takeMeasurementAvg(lengths9);
     
@@ -602,11 +602,11 @@ bool user_defined_homing(uint8_t cycle_mask)
   
   if(cycle_mask == 1){  //Top left
     axisTL.testEncoder();
-    axisTLHomed = axisTL.retract(computeTL(0, -500));
+    axisTLHomed = axisTL.retract(computeTL(-200, 200));
   }
   else if(cycle_mask == 2){  //Top right
     axisTR.testEncoder();
-    axisTRHomed = axisTR.retract(computeTR(0, -500));
+    axisTRHomed = axisTR.retract(computeTR(-200, 200));
   }
   else if(cycle_mask == 4){ //Bottom right
     axisBR.testEncoder();
@@ -614,12 +614,12 @@ bool user_defined_homing(uint8_t cycle_mask)
         runCalibration();
     }
     else{
-        axisBRHomed = axisBR.retract(computeBR(0, -300));
+        axisBRHomed = axisBR.retract(computeBR(-200, 300));
     }
   }
   else if(cycle_mask == 0){  //Bottom left
     axisBL.testEncoder();
-    axisBLHomed = axisBL.retract(computeBL(0, -300));
+    axisBLHomed = axisBL.retract(computeBL(-200, 300));
   }
   
   if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
