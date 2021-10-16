@@ -45,14 +45,7 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
     bool submitted_result = false;
     // store the plan data so it can be cancelled by the protocol system if needed
     sys_pl_data_inflight = pl_data;
-    // If enabled, check for soft limit violations. Placed here all line motions are picked up
-    // from everywhere in Grbl.
-    if (soft_limits->get()) {
-        // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
-        if (sys.state != State::Jog) {
-            limits_soft_check(target);
-        }
-    }
+
     // If in check gcode mode, prevent motion by blocking planner. Soft limits still work.
     if (sys.state == State::CheckMode) {
         sys_pl_data_inflight = NULL;
@@ -222,6 +215,7 @@ void mc_arc(float*            target,
             position[axis_1] = center_axis1 + r_axis1;
             position[axis_linear] += linear_per_segment;
             pl_data->feed_rate = original_feedrate;  // This restores the feedrate kinematics may have altered
+            limitsCheckSoft(position);
             cartesian_to_motors(position, pl_data, previous_position);
             previous_position[axis_0]      = position[axis_0];
             previous_position[axis_1]      = position[axis_1];
@@ -233,6 +227,7 @@ void mc_arc(float*            target,
         }
     }
     // Ensure last segment arrives at target location.
+    limitsCheckSoft(target);
     cartesian_to_motors(target, pl_data, previous_position);
 }
 
@@ -419,6 +414,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
+    limitsCheckSoft(target);
     cartesian_to_motors(target, pl_data, gc_state.position);
     // Activate the probing state monitor in the stepper module.
     sys_probe_state = Probe::Active;

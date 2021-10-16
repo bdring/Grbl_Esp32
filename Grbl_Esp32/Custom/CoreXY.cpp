@@ -312,11 +312,6 @@ void kinematics_post_homing() {
     memcpy(gc_state.position, last_cartesian, n_axis * sizeof(last_cartesian[0]));
 }
 
-// this is used used by Limits.cpp to see if the range of the machine is exceeded.
-bool limitsCheckTravel(float* target) {
-    return false;
-}
-
 void user_m30() {}
 
 // ================ Local Helper functions =================
