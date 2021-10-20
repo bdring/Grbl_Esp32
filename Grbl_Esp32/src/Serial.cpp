@@ -130,14 +130,8 @@ void client_init() {
 
 static uint8_t getClientChar(uint8_t* data) {
     int res;
-#ifdef REVERT_TO_ARDUINO_SERIAL
-    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Serial.read()) != -1) {
-#else
-    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Uart0.read()) != -1) {
-#endif
-        *data = res;
-        return CLIENT_SERIAL;
-    }
+    // An earlier client will block i/o for a later client while it has data available.
+    // So clients should be ordered by likelihood of being used interactively.
     if (client_buffer[CLIENT_INPUT].availableforwrite() && WebUI::inputBuffer.available()) {
         *data = WebUI::inputBuffer.read();
         return CLIENT_INPUT;
@@ -157,12 +151,23 @@ static uint8_t getClientChar(uint8_t* data) {
         return CLIENT_WEBUI;
     }
 #endif
+
+    // The clients below here are most likely to be non-interactive, or have
+    // interactive complementary clients.
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
     if (client_buffer[CLIENT_TELNET].availableforwrite() && WebUI::telnet_server.available()) {
         *data = WebUI::telnet_server.read();
         return CLIENT_TELNET;
     }
 #endif
+#ifdef REVERT_TO_ARDUINO_SERIAL
+    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Serial.read()) != -1) {
+#else
+    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Uart0.read()) != -1) {
+#endif
+        *data = res;
+        return CLIENT_SERIAL;
+    }
     return CLIENT_ALL;
 }
 
