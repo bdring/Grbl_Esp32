@@ -164,56 +164,59 @@ void updateCenterXY(){
 }
 
 //Upper left belt
-float computeBL(float x, float y){
+float computeBL(float x, float y, float z){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
     y = y + centerY;
     float a = blX - x;
     float b = blY - y;
-    float c = 0.0 - blZ;
+    float c = 0.0 - (z + blZ);
     return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Upper right belt
-float computeBR(float x, float y){
+float computeBR(float x, float y, float z){
     //Move from lower left corner cordinates to centered cordinates
     x = x + centerX;
     y = y + centerY;
     float a = brX - x;
     float b = brY - y;
-    float c = 0.0 - brZ;
+    float c = 0.0 - (z + brZ);
     return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Lower right belt
-float computeTR(float x, float y){
+float computeTR(float x, float y, float z){
     //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = trX - x;
     float b = trY - y;
-    float c = 0.0 - trZ;
+    float c = 0.0 - (z + trZ);
     return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 //Lower left belt
-float computeTL(float x, float y){
+float computeTL(float x, float y, float z){
     //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = tlX - x;
     float b = tlY - y;
-    float c = 0.0 - tlZ;
+    float c = 0.0 - (z + tlZ);
     return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
     
     if(!calibrationInProgress){
-        axisBL.setTarget(computeBL(xTarget, yTarget));
-        axisBR.setTarget(computeBR(xTarget, yTarget));
-        axisTR.setTarget(computeTR(xTarget, yTarget));
-        axisTL.setTarget(computeTL(xTarget, yTarget));
+        if(random(0,3000) == 5){
+            grbl_sendf(CLIENT_ALL, "Position errors: %f, %f, %f, %f.\n", axisTL.getError(), axisTR.getError(), axisBL.getError(), axisBR.getError());
+        }
+        axisBL.setTarget(computeBL(xTarget, yTarget, zTarget));
+        axisBR.setTarget(computeBR(xTarget, yTarget, zTarget));
+        axisTR.setTarget(computeTR(xTarget, yTarget, zTarget));
+        axisTL.setTarget(computeTL(xTarget, yTarget, zTarget));
     }
 }
 
@@ -341,8 +344,8 @@ void runCalibration(){
     takeMeasurementAvg(lengths1);
     takeMeasurementAvg(lengths1);
     
-    double blError = (lengths1[0]-(beltEndExtension+armLength))-computeBL(0,0);
-    double brError = (lengths1[1]-(beltEndExtension+armLength))-computeBR(0,0);
+    double blError = (lengths1[0]-(beltEndExtension+armLength))-computeBL(0,0,0);
+    double brError = (lengths1[1]-(beltEndExtension+armLength))-computeBR(0,0,0);
     
     grbl_sendf(CLIENT_ALL, "Lower belt length mismatch: bl: %f, br: %f\n", blError, brError);
     
@@ -499,8 +502,8 @@ void moveWithSlack(float x, float y){
     grbl_sendf(CLIENT_ALL, "Moving to (%f, %f) with slack lower belts\n", x, y);
     
     //The distance we need to move is the current position minus the target position
-    double TLDist = axisTL.getPosition() - computeTL(x,y);
-    double TRDist = axisTR.getPosition() - computeTR(x,y);
+    double TLDist = axisTL.getPosition() - computeTL(x,y,0);
+    double TRDist = axisTR.getPosition() - computeTR(x,y,0);
     
     //Record which direction to move
     double TLDir  = constrain(TLDist, -1, 1);
@@ -548,6 +551,8 @@ void moveWithSlack(float x, float y){
             elapsedTime = millis()-time;
         }
     }
+    
+    grbl_sendf(CLIENT_ALL, "Positional errors at the end of move <-%f, %f ->\n", axisTL.getError(), axisTR.getError());
     
     axisBL.setTarget(axisBL.getPosition());
     axisBR.setTarget(axisBR.getPosition());
@@ -602,11 +607,11 @@ bool user_defined_homing(uint8_t cycle_mask)
   
   if(cycle_mask == 1){  //Top left
     axisTL.testEncoder();
-    axisTLHomed = axisTL.retract(computeTL(-200, 200));
+    axisTLHomed = axisTL.retract(computeTL(-200, 200, 0));
   }
   else if(cycle_mask == 2){  //Top right
     axisTR.testEncoder();
-    axisTRHomed = axisTR.retract(computeTR(-200, 200));
+    axisTRHomed = axisTR.retract(computeTR(-200, 200, 0));
   }
   else if(cycle_mask == 4){ //Bottom right
     axisBR.testEncoder();
@@ -614,12 +619,12 @@ bool user_defined_homing(uint8_t cycle_mask)
         runCalibration();
     }
     else{
-        axisBRHomed = axisBR.retract(computeBR(-200, 300));
+        axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
     }
   }
   else if(cycle_mask == 0){  //Bottom left
     axisBL.testEncoder();
-    axisBLHomed = axisBL.retract(computeBL(-200, 300));
+    axisBLHomed = axisBL.retract(computeBL(-200, 300, 0));
   }
   
   if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){

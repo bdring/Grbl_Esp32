@@ -107,10 +107,10 @@
 void recomputePID();
 void setTargets(float xTarget, float yTarget, float zTarget);
 void updateCenterXY();
-float computeTL(float x, float y);
-float computeTR(float x, float y);
-float computeBL(float x, float y);
-float computeBR(float x, float y);
+float computeTL(float x, float y, float z);
+float computeTR(float x, float y, float z);
+float computeBL(float x, float y, float z);
+float computeBR(float x, float y, float z);
 void runCalibration();
 void lowerBeltsGoSlack();
 void takeMeasurementAvg(float lengths[]);
