@@ -58,6 +58,8 @@
 
 #pragma once
 
+#include <calibration.h>
+
 #define MACHINE_NAME            "MASLOW 4"
 
 #define CUSTOM_CODE_FILENAME "../Custom/maslow.cpp"
@@ -99,16 +101,26 @@
 #define MOTOR_4_BACKWARD 8
 #define MOTOR_4_CS 25
 
-#define DC_TOP_LEFT_MM_PER_REV 44//31.415 // Correct for 10mm pulley
-#define DC_Z_AXIS_MM_PER_REV 1//31.415 //
+#define DC_TOP_LEFT_MM_PER_REV 44
+#define DC_Z_AXIS_MM_PER_REV 1
 
 void recomputePID();
 void setTargets(float xTarget, float yTarget, float zTarget);
-float computeL1(float x, float y);
-float computeL2(float x, float y);
-float computeL3(float x, float y);
-float computeL4(float x, float y);
-void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axis4Pull);
+void updateCenterXY();
+float computeTL(float x, float y, float z);
+float computeTR(float x, float y, float z);
+float computeBL(float x, float y, float z);
+float computeBR(float x, float y, float z);
+void runCalibration();
+void lowerBeltsGoSlack();
+void takeMeasurementAvg(float lengths[]);
+void moveWithSlack(float x, float y);
+void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float machineDimensions[]);
+float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower);
+void takeMeasurement(float lengths[]);
+void printMeasurements(float lengths[]);
+void printPrecision(float precision);
+void printStall (double variable);
 
 
 

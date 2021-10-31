@@ -51,20 +51,34 @@ TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
 esp_adc_cal_characteristics_t *adc_1_characterisitics = (esp_adc_cal_characteristics_t*) calloc(1, sizeof(esp_adc_cal_characteristics_t));
 
-MotorUnit axis1(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axis2(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axis3(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
-MotorUnit axis4(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
+MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
 
-float maslowWidth;
-float maslowHeight;
-float chainEndExtension;
+//The xy coordinates of each of the anchor points
+float tlX;
+float tlY;
+float tlZ;
+float trX;
+float trY;
+float trZ;
+float blX;
+float blY;
+float blZ;
+float brX;
+float brY;
+float brZ;
+float centerX;
+float centerY;
+
+float beltEndExtension;
 float armLength;
 
-bool axis1Homed;
-bool axis2Homed;
-bool axis3Homed;
-bool axis4Homed;
+bool axisBLHomed;
+bool axisBRHomed;
+bool axisTRHomed;
+bool axisTLHomed;
 bool calibrationInProgress;  //Used to turn off regular movements during calibration
 
 
@@ -78,133 +92,505 @@ void machine_init()
     tlc.begin();
     
     Serial.println("Testing reading from encoders: ");
-    axis1.testEncoder();
-    axis2.testEncoder();
-    axis3.testEncoder();
-    axis4.testEncoder();
+    axisBL.testEncoder();
+    axisBR.testEncoder();
+    axisTR.testEncoder();
+    axisTL.testEncoder();
     
-    axis1.zero();
-    axis2.zero();
-    axis3.zero();
-    axis4.zero();
+    axisBL.zero();
+    axisBR.zero();
+    axisTR.zero();
+    axisTL.zero();
     
-    axis1Homed = false;
-    axis2Homed = false;
-    axis3Homed = false;
-    axis4Homed = false;
+    axisBLHomed = false;
+    axisBRHomed = false;
+    axisTRHomed = false;
+    axisTLHomed = false;
     
-    maslowWidth = 2900.0;
-    maslowHeight = 1780.0;
-    chainEndExtension = 30;
-    armLength = 108;
+    tlX = -8.339;
+    tlY = 1828.17;
+    tlZ = 96;
+    trX = 2870.62;
+    trY = 1829.05;
+    trZ = 131;
+    blX = 0;
+    blY = 0;
+    blZ = 111;
+    brX = 2891.36;
+    brY = 0;
+    brZ = 172;
+    
+    //Recompute the center XY
+    updateCenterXY();
+    
+    beltEndExtension = 30;
+    armLength = 114;
 }
 #endif
 
+void printToWeb (double precision){
+    grbl_sendf(CLIENT_ALL, "Calibration Precision: %fmm\n", precision);
+}
+
 void recomputePID(){
+    //Stop everything but keep track of the encoder positions if we are idle or alarm. Unless doing calibration.
     
-    if(sys.state == State::Idle || sys.state == State::Alarm){
-        axis1.stop();
-        axis1.updateEncoderPosition();
-        axis4.stop();
-        axis4.updateEncoderPosition();
+    if((sys.state == State::Idle || sys.state == State::Alarm) && !calibrationInProgress){
+        axisBL.stop();
+        axisBL.updateEncoderPosition();
+        axisBR.stop();
+        axisBR.updateEncoderPosition();
+        axisTR.stop();
+        axisTR.updateEncoderPosition();
+        axisTL.stop();
+        axisTL.updateEncoderPosition();
     }
-    else{
-        axis1.recomputePID();
-        //axis2.recomputePID();
-        //axis3.recomputePID();
-        axis4.recomputePID();
+    else{  //Position the axis
+        axisBL.recomputePID();
+        axisBR.recomputePID();
+        axisTR.recomputePID();
+        axisTL.recomputePID();
     }
 }
 
-float computeL1(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
-    return sqrt(x*x+y*y) - (chainEndExtension+armLength);
+//Updates where the center x and y positions are
+void updateCenterXY(){
+    
+    double A = (trY - blY)/(trX-blX);
+    double B = (brY-tlY)/(brX-tlX);
+    centerX = (brY-(B*brX)+(A*trX)-trY)/(A-B);
+    centerY = A*(centerX - trX) + trY;
+    
 }
 
-float computeL2(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
-    return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y) - (chainEndExtension+armLength);
+//Upper left belt
+float computeBL(float x, float y, float z){
+    //Move from lower left corner cordinates to centered cordinates
+    x = x + centerX;
+    y = y + centerY;
+    float a = blX - x;
+    float b = blY - y;
+    float c = 0.0 - (z + blZ);
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
-float computeL3(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
-    return sqrt((maslowWidth-x)*(maslowWidth-x)+(maslowHeight-y)*(maslowHeight-y)) - (chainEndExtension+armLength);
+//Upper right belt
+float computeBR(float x, float y, float z){
+    //Move from lower left corner cordinates to centered cordinates
+    x = x + centerX;
+    y = y + centerY;
+    float a = brX - x;
+    float b = brY - y;
+    float c = 0.0 - (z + brZ);
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
-float computeL4(float x, float y){
-    x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
-    return sqrt((maslowHeight-y)*(maslowHeight-y)+x*x) - (chainEndExtension+armLength);
+//Lower right belt
+float computeTR(float x, float y, float z){
+    //Move from lower left corner coordinates to centered coordinates
+    x = x + centerX;
+    y = y + centerY;
+    float a = trX - x;
+    float b = trY - y;
+    float c = 0.0 - (z + trZ);
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
+}
+
+//Lower left belt
+float computeTL(float x, float y, float z){
+    //Move from lower left corner coordinates to centered coordinates
+    x = x + centerX;
+    y = y + centerY;
+    float a = tlX - x;
+    float b = tlY - y;
+    float c = 0.0 - (z + tlZ);
+    return sqrt(a*a+b*b+c*c) - (beltEndExtension+armLength);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
     
-    axis1.setTarget(computeL2(xTarget, yTarget));
-    axis4.setTarget(computeL1(xTarget, yTarget));
+    if(!calibrationInProgress){
+        if(random(0,3000) == 5){
+            grbl_sendf(CLIENT_ALL, "Position errors: %f, %f, %f, %f.\n", axisTL.getError(), axisTR.getError(), axisBL.getError(), axisBR.getError());
+        }
+        axisBL.setTarget(computeBL(xTarget, yTarget, zTarget));
+        axisBR.setTarget(computeBR(xTarget, yTarget, zTarget));
+        axisTR.setTarget(computeTR(xTarget, yTarget, zTarget));
+        axisTL.setTarget(computeTL(xTarget, yTarget, zTarget));
+    }
 }
 
-void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axis4Pull){
-    Serial.println("Retracting multiple axis until one is taught");
+
+//Runs the calibration sequence to determine the machine's dimensions
+void runCalibration(){
     
-    axis1.setTarget(axis1.getPosition());
-    axis2.setTarget(axis2.getPosition());
-    axis3.setTarget(axis3.getPosition());
-    axis4.setTarget(axis4.getPosition());
+    grbl_sendf(CLIENT_ALL, "Beginning calibration\n");
     
-    while(true){
-        //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        if(axis3Pull){
-            if(axis3.getCurrent() > 7){
-                Serial.println("Stopping retracting axis 3");
-                Serial.println("Belt lengths: ");
-                Serial.println(axis1.getPosition());
-                Serial.println(axis2.getPosition());
-                Serial.println(axis3.getPosition());
-                Serial.println(axis4.getPosition());
-                return;
-            }
-            else{
-                axis4.setTarget(axis4.getTarget() - .2);
-            }
+    calibrationInProgress = true;
+    
+    //Undoes any calls by the system to move these to (0,0)
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+    axisTR.setTarget(axisTR.getPosition());
+    axisTL.setTarget(axisTL.getPosition());
+    
+    float lengths1[4];
+    float lengths2[4];
+    float lengths3[4];
+    float lengths4[4];
+    float lengths5[4];
+    float lengths6[4];
+    float lengths7[4];
+    float lengths8[4];
+    float lengths9[4];
+    
+    //------------------------------------------------------Take measurements
+    
+    takeMeasurementAvg(lengths1);//Repeat and throw away the first one
+    takeMeasurementAvg(lengths1);
+    
+    moveWithSlack(-200, 0);
+    
+    takeMeasurementAvg(lengths2);
+    
+    moveWithSlack(-200, -200);
+    
+    takeMeasurementAvg(lengths3);
+    
+    moveWithSlack(0, 200);
+    
+    takeMeasurementAvg(lengths4);
+    
+    moveWithSlack(0, 0);
+    
+    takeMeasurementAvg(lengths5);
+    
+    moveWithSlack(0, -200);
+    
+    takeMeasurementAvg(lengths6);
+    
+    moveWithSlack(200, 200);
+    
+    takeMeasurementAvg(lengths7);
+    
+    moveWithSlack(200, 0);
+    
+    takeMeasurementAvg(lengths8);
+    
+    moveWithSlack(200, -200);
+    
+    takeMeasurementAvg(lengths9);
+    
+    moveWithSlack(0, 0);  //Go back to the center. This will pull the lower belts tight too
+    
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
+    
+    //----------------------------------------------------------Do the computation
+    
+    printMeasurements(lengths1);
+    printMeasurements(lengths2);
+    printMeasurements(lengths3);
+    printMeasurements(lengths4);
+    printMeasurements(lengths5);
+    printMeasurements(lengths6);
+    printMeasurements(lengths7);
+    printMeasurements(lengths8);
+    printMeasurements(lengths9);
+    
+    double measurements[][4] = {
+        //TL              TR           BL           BR
+        {lengths1[3], lengths1[2], lengths1[0], lengths1[1]},
+        {lengths2[3], lengths2[2], lengths2[0], lengths2[1]},
+        {lengths3[3], lengths3[2], lengths3[0], lengths3[1]},
+        {lengths4[3], lengths4[2], lengths4[0], lengths4[1]},
+        {lengths5[3], lengths5[2], lengths5[0], lengths5[1]},
+        {lengths6[3], lengths6[2], lengths6[0], lengths6[1]},
+        {lengths7[3], lengths7[2], lengths7[0], lengths7[1]},
+        {lengths8[3], lengths8[2], lengths8[0], lengths8[1]},
+        {lengths9[3], lengths9[2], lengths9[0], lengths9[1]},
+    };
+    double results[6] = {0,0,0,0,0,0};
+    computeCalibration(measurements, results, printToWeb, tlX, tlY, trX, trY, brX, tlZ, trZ, blZ, brZ);
+    
+    grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
+    
+    if(results[5] < 2){
+        grbl_sendf(CLIENT_ALL, "Calibration successful with precision %f\n", results[5]);
+        tlX = results[0];
+        tlY = results[1];
+        trX = results[2];
+        trY = results[3];
+        blX = 0;
+        blY = 0;
+        brX = results[4];
+        brY = 0;
+        updateCenterXY();
+        grbl_sendf(CLIENT_ALL, "tlx: %f tly: %f trx: %f try: %f blx: %f bly: %f brx: %f bry: %f \n", tlX, tlY, trX, trY, blX, blY, brX, brY);
+    }
+    else{
+        grbl_sendf(CLIENT_ALL, "Calibration failed: %f\n", results[5]);
+    }
+    
+    //---------------------------------------------------------Finish
+    
+    
+    //Move back to center after the results are applied
+    moveWithSlack(0, 0);
+    
+    //For safety we should pull tight here and verify that the results are basically what we expect before handing things over to the controller.
+    takeMeasurementAvg(lengths1);
+    takeMeasurementAvg(lengths1);
+    
+    double blError = (lengths1[0]-(beltEndExtension+armLength))-computeBL(0,0,0);
+    double brError = (lengths1[1]-(beltEndExtension+armLength))-computeBR(0,0,0);
+    
+    grbl_sendf(CLIENT_ALL, "Lower belt length mismatch: bl: %f, br: %f\n", blError, brError);
+    
+    calibrationInProgress = false;
+    grbl_sendf(CLIENT_ALL, "Calibration finished\n");
+    
+}
+
+void printMeasurements(float lengths[]){
+    grbl_sendf(CLIENT_ALL, "{bl:%f,   br:%f,   tr:%f,   tl:%f},\n", lengths[0], lengths[1], lengths[2], lengths[3]);
+}
+
+void printStall (double variable){
+    grbl_sendf(CLIENT_ALL, "Motor stalled at: %f\n", variable);
+}
+
+void lowerBeltsGoSlack(){
+    unsigned long timeLastMoved1 = millis();
+    unsigned long timeLastMoved2 = millis();
+    double lastPosition1 = axisBL.angleSensor->getRotation();
+    double lastPosition2 = axisBR.angleSensor->getRotation();
+    double amtToMove1 = 0.1;
+    double amtToMove2 = 0.1;
+    
+    unsigned long startTime = millis();
+    
+    while(millis()- startTime < 1200){
+        //Set the lower axis to be compliant. PID is recomputed in comply()
+        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
+        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
+        
+        //The other axis hold position
+        axisTR.recomputePID();
+        axisTL.recomputePID();
+        
+        // Delay without blocking
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 10){
+            elapsedTime = millis()-time;
         }
-        if(axis4Pull){
-            if(axis4.getCurrent() > 7){
-                Serial.println("Stopping retracting  axis 4");
-                Serial.println("Belt lengths: ");
-                Serial.println(axis1.getPosition());
-                Serial.println(axis2.getPosition());
-                Serial.println(axis3.getPosition());
-                Serial.println(axis4.getPosition());
-                return;
-            }
-            else{
-                axis4.setTarget(axis4.getTarget() - .2);
-            }
+    }
+}
+
+void printMeasurementMetrics(double avg, double m1, double m2, double m3, double m4, double m5){
+    
+    
+    double m1Variation = myAbs(avg - m1);
+    double m2Variation = myAbs(avg - m1);
+    double m3Variation = myAbs(avg - m1);
+    double m4Variation = myAbs(avg - m1);
+    double m5Variation = myAbs(avg - m1);
+    
+    double maxDeviation = max(max(max(m1Variation, m2Variation), max(m3Variation, m4Variation)), m5Variation);
+    
+    double avgDeviation = (m1Variation + m2Variation + m3Variation + m4Variation + m5Variation)/5.0;
+    
+    grbl_sendf(CLIENT_ALL, "Max deviation: %f, Avg deviation: %f\n", maxDeviation, avgDeviation);
+}
+
+//Takes 5 measurements and computes the average of them
+void takeMeasurementAvg(float lengths[]){
+    grbl_sendf(CLIENT_ALL, "Begining to take averaged measurement.\n");
+    
+    //Where our five measurements will be stored
+    float lengths1[4];
+    float lengths2[4];
+    float lengths3[4];
+    float lengths4[4];
+    float lengths5[4];
+    
+    takeMeasurement(lengths1);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths1);  //Repeat the first measurement to discard the one before everything was pulled taught
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths2);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths3);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths4);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths5);
+    
+    lengths[0] = (lengths1[0]+lengths2[0]+lengths3[0]+lengths4[0]+lengths5[0])/5.0;
+    lengths[1] = (lengths1[1]+lengths2[1]+lengths3[1]+lengths4[1]+lengths5[1])/5.0;
+    lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
+    lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
+    
+    printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
+    printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
+    printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
+    printMeasurementMetrics(lengths[3], lengths1[3], lengths2[3], lengths3[3], lengths4[3], lengths5[3]);
+}
+
+//Retract the lower belts until they pull tight and take a measurement
+void takeMeasurement(float lengths[]){
+    grbl_sendf(CLIENT_ALL, "Taking measurement.\n");
+    bool axisBLDone = false;
+    bool axisBRDone = false;
+    
+    while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
+        
+        //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
+        int currentThreshold = 12;
+        
+        if(axisBL.getCurrent() > currentThreshold || axisBLDone){
+            axisBLDone = true;
+            //grbl_sendf(CLIENT_ALL, "Axis 1 declaring stopping");
+        }
+        else{
+            axisBL.setTarget(axisBL.getTarget() - .2);
+        }
+        
+        if(axisBR.getCurrent() > currentThreshold || axisBRDone){
+            axisBRDone = true;
+            //grbl_sendf(CLIENT_ALL, "Axis 2 declaring stopping");
+        }
+        else{
+            axisBR.setTarget(axisBR.getTarget() - .2);
         }
         
         // Delay without blocking
         unsigned long time = millis();
         unsigned long elapsedTime = millis()-time;
-        while(elapsedTime < 50){
+        while(elapsedTime < 25){
             elapsedTime = millis()-time;
-            recomputePID();
+            recomputePID();  //This recomputes the PID four all four servos
         }
-        
-        Serial.println("Errors: ");
-        Serial.println(axis1.getError());
-        Serial.println(axis2.getError());
-        Serial.println(axis3.getError());
-        Serial.println(axis4.getError());
-        
-        Serial.println("Targets: ");
-        Serial.println(axis1.getTarget());
-        Serial.println(axis2.getTarget());
-        Serial.println(axis3.getTarget());
-        Serial.println(axis4.getTarget());
     }
+    
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+    //axisTR.setTarget(axisTR.getPosition());
+    //axisTL.setTarget(axisTL.getPosition());
+    
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
+    
+    lengths[0] = axisBL.getPosition()+beltEndExtension+armLength;
+    lengths[1] = axisBR.getPosition()+beltEndExtension+armLength;
+    lengths[2] = axisTR.getPosition()+beltEndExtension+armLength;
+    lengths[3] = axisTL.getPosition()+beltEndExtension+armLength;
+    
+    //grbl_sendf(CLIENT_ALL, "Measured:\n%f \n%f \n%f \n%f \n",lengths[0], lengths[1], lengths[2], lengths[3]);
+    
+    return;
+}
+
+//Reposition the sled without knowing the machine dimensions
+void moveWithSlack(float x, float y){
+    
+    grbl_sendf(CLIENT_ALL, "Moving to (%f, %f) with slack lower belts\n", x, y);
+    
+    //The distance we need to move is the current position minus the target position
+    double TLDist = axisTL.getPosition() - computeTL(x,y,0);
+    double TRDist = axisTR.getPosition() - computeTR(x,y,0);
+    
+    //Record which direction to move
+    double TLDir  = constrain(TLDist, -1, 1);
+    double TRDir  = constrain(TRDist, -1, 1);
+    
+    double stepSize = .15;
+    
+    //Only use positive dist for incrementing counter (float int conversion issue?)
+    TLDist = abs(TLDist);
+    TRDist = abs(TRDist);
+    
+    //Make the lower arms compliant and move retract the other two until we get to the target distance
+    
+    unsigned long timeLastMoved1 = millis();
+    unsigned long timeLastMoved2 = millis();
+    double lastPosition1 = axisBL.getPosition();
+    double lastPosition2 = axisBR.getPosition();
+    double amtToMove1 = 100;
+    double amtToMove2 = 100;
+    
+    while(TLDist > 0 || TRDist > 0){
+        
+        //Set the lower axis to be compliant. PID is recomputed in comply()
+        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 300);
+        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 300);
+        
+        // grbl_sendf(CLIENT_ALL, "BRPos: %f, BRamt: %f, BRtime: %l\n", lastPosition2, amtToMove2, timeLastMoved2);
+        
+        //Move the upper axis one step
+        if(TLDist > 0){
+            TLDist = TLDist - stepSize;
+            axisTL.setTarget((axisTL.getTarget() - (stepSize*TLDir)));
+        }
+        if(TRDist > 0){
+            TRDist = TRDist - stepSize;
+            axisTR.setTarget((axisTR.getTarget() - (stepSize*TRDir)));
+        }
+        axisTR.recomputePID();
+        axisTL.recomputePID();
+        
+        // Delay without blocking
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 10){
+            elapsedTime = millis()-time;
+        }
+    }
+    
+    grbl_sendf(CLIENT_ALL, "Positional errors at the end of move <-%f, %f ->\n", axisTL.getError(), axisTR.getError());
+    
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+    axisTR.setTarget(axisTR.getPosition());
+    axisTL.setTarget(axisTL.getPosition());
+    
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
+    
+    //Take a measurement to pull things taught
+    float lengths1[4];
+    takeMeasurementAvg(lengths1);
+}
+
+float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower){
+    //Derivation at https://math.stackexchange.com/questions/4090346/solving-for-triangle-side-length-with-limited-information
+    
+    float b = secondUpper;   //upper, second
+    float c = secondLower; //lower, second
+    float d = firstUpper; //upper, first
+    float e = firstLower;  //lower, first
+
+    float aSquared = (((b*b)-(c*c))*((b*b)-(c*c))-((d*d)-(e*e))*((d*d)-(e*e)))/(2*(b*b+c*c-d*d-e*e));
+
+    float a = sqrt(aSquared);
+    
+    return a;
+}
+
+void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float machineDimensions[]){
+    //Call compute verticals from each side
+    
+    float leftHeight = computeVertical(lengthsSet1[3],lengthsSet1[0], lengthsSet2[3], lengthsSet2[0]);
+    float rightHeight = computeVertical(lengthsSet1[2],lengthsSet1[1], lengthsSet2[2], lengthsSet2[1]);
+    
+    grbl_sendf(CLIENT_ALL, "Computed vertical measurements:\n%f \n%f \n%f \n",leftHeight, rightHeight, (leftHeight+rightHeight)/2.0);
 }
 
 #ifdef USE_CUSTOM_HOMING
@@ -217,30 +603,33 @@ void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axi
 */
 bool user_defined_homing(uint8_t cycle_mask)
 {
-  // True = done with homing, false = continue with normal Grbl_ESP32 homing
-  Serial.println("Custom homing ran");
-  Serial.println(cycle_mask);
-  if(cycle_mask == 1){
-    axis4Homed = axis4.retract(computeL1(0, 0));
+  grbl_sendf(CLIENT_ALL, "Extending\n");
+  
+  if(cycle_mask == 1){  //Top left
+    axisTL.testEncoder();
+    axisTLHomed = axisTL.retract(computeTL(-200, 200, 0));
   }
-  else if(cycle_mask == 2){
-    axis3Homed = axis3.retract(computeL2(0, 0));
+  else if(cycle_mask == 2){  //Top right
+    axisTR.testEncoder();
+    axisTRHomed = axisTR.retract(computeTR(-200, 200, 0));
   }
-  else if(cycle_mask == 4){
-    axis2Homed = axis2.retract(computeL3(0, 0));
+  else if(cycle_mask == 4){ //Bottom right
+    axisBR.testEncoder();
+    if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
+        runCalibration();
+    }
+    else{
+        axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
+    }
   }
-  else if(cycle_mask == 0){
-      axis1Homed = axis1.retract(computeL4(0, 0));
-      //axis1.setPosition(computeL1(0,0));
-      //axis4.setPosition(computeL1(0,0));
-      //Serial.println("Setting initial position");
+  else if(cycle_mask == 0){  //Bottom left
+    axisBL.testEncoder();
+    axisBLHomed = axisBL.retract(computeBL(-200, 300, 0));
   }
   
-  Serial.println("Homed?: ");
-  Serial.println(axis1Homed);
-  Serial.println(axis2Homed);
-  Serial.println(axis3Homed);
-  Serial.println(axis4Homed);
+  if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
+      grbl_sendf(CLIENT_ALL, "All axis ready.\n");
+  }
   
   return true;
 }
