@@ -39,6 +39,9 @@ void       print_indent() {
     }
 }
 void section(const char* name) {
+    if (indent == 0) {
+        p("\n");
+    }
     print_indent();
     p("%s:\n", name);
     indent += 2;
@@ -89,12 +92,19 @@ const char* pinspec(int pin_number, bool active_low = false, bool pullup = false
     }
     return temp;
 }
+void pin_item(const char* name, int pin_number, bool active_low = false, bool pullup = false) {
+    if (pin_number == UNDEFINED_PIN) {
+        return;
+    }
+    item(name, pinspec(pin_number, active_low, pullup));
+}
+
 void print_uart(int portnum, uint8_t txd, uint8_t rxd, uint8_t rts, uint32_t baudrate, const char* mode) {
     section("uart");
-    item("txd_pin", pinspec(txd));
-    item("rxd_pin", pinspec(rxd));
-    item("rts_pin", pinspec(rts));
-    item("cts_pin", pinspec(UNDEFINED_PIN));  // Nothing in the old code uses CTS
+    pin_item("txd_pin", txd);
+    pin_item("rxd_pin", rxd);
+    pin_item("rts_pin", rts);
+    pin_item("cts_pin", UNDEFINED_PIN);  // Nothing in the old code uses CTS
     item("baud", baudrate);
     item("mode", mode);
     end_section();
@@ -102,12 +112,15 @@ void print_uart(int portnum, uint8_t txd, uint8_t rxd, uint8_t rts, uint32_t bau
 
 void print_steps(int axis) {
     item("steps_per_mm", axis_settings[axis]->steps_per_mm->get());
-    item("max_rate", axis_settings[axis]->max_rate->get());
-    item("acceleration", axis_settings[axis]->acceleration->get());
-    item("max_travel", axis_settings[axis]->max_travel->get());
+    item("max_rate_mm_per_min", axis_settings[axis]->max_rate->get());
+    item("acceleration_mm_per_sec2", axis_settings[axis]->acceleration->get());
+    item("max_travel_mm", axis_settings[axis]->max_travel->get());
     item("soft_limits", tf(soft_limits->get()));
 }
 void print_homing(int axis) {
+    if (!homing_enable->get()) {
+        return;
+    }
     int cycle;
     for (cycle = 0; cycle < MAX_N_AXIS; cycle++) {
         if (bitnum_istrue(homing_cycle[cycle]->get(), axis)) {
@@ -120,13 +133,11 @@ void print_homing(int axis) {
     section("homing");
 
     item("cycle", cycle + 1);
+    item("mpos_mm", axis_settings[axis]->home_mpos->get());
     item("positive_direction", bitnum_istrue(homing_dir_mask->get(), axis));
-    item("mpos", axis_settings[axis]->home_mpos->get());
-    item("debounce", homing_debounce->get());
-    item("pulloff", homing_pulloff->get());
-    item("square", bitnum_istrue(homing_squared_axes->get(), axis));
-    item("seek_rate", homing_seek_rate->get());
-    item("feed_rate", homing_feed_rate->get());
+    item("settle_ms", homing_debounce->get());
+    item("seek_mm_per_min", homing_seek_rate->get());
+    item("feed_mm_per_min", homing_feed_rate->get());
 
     float hass = 1.1f;
 #ifdef HOMING_AXIS_SEARCH_SCALAR
@@ -143,14 +154,12 @@ void print_homing(int axis) {
 }
 void print_endstops(int axis, int gang) {
     if (limit_pins[axis][gang] != UNDEFINED_PIN) {
-        section("endstops");
         bool dlppu = false;
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
         dlppu = true;
 #endif
-        item("dual", pinspec(limit_pins[axis][gang], limit_invert->get(), dlppu));
+        pin_item("limit_all_pin", limit_pins[axis][gang], limit_invert->get(), dlppu);
         item("hard_limits", bool(DEFAULT_HARD_LIMIT_ENABLE));
-        end_section();
     }
 }
 void print_motor(Motor* m, int axis, int gang, const char* name) {
@@ -158,12 +167,16 @@ void print_motor(Motor* m, int axis, int gang, const char* name) {
 }
 void print_servo(Motor* m, int axis, int gang, const char* name = "servo") {
     print_motor(m, axis, gang, name);
+    item("timer_ms", float(SERVO_TIMER_INTERVAL));
 }
 void print_rc_servo(RcServo* m, int axis, int gang, const char* name = "rc_servo") {
     print_servo(m, axis, gang, name);
     item("cal_min", m->rc_servo_cal_min->get());
     item("cal_max", m->rc_servo_cal_max->get());
-    item("pwm", pinspec(m->_pwm_pin, false));
+    pin_item("pwm_pin", m->_pwm_pin, false);
+    item("min_pulse_us", SERVO_MIN_PULSE);
+    item("max_pulse_us", SERVO_MAX_PULSE);
+
     end_section();
 }
 #if 0
@@ -175,10 +188,10 @@ void print_solenoid(Solenoid* m, int axis, int gang, const char* name = "solenoi
 #endif
 void print_unipolar(UnipolarMotor* m, int axis, int gang, const char* name = "unipolar") {
     print_motor(m, axis, gang, name);
-    item("phase0", pinspec(m->_pin_phase0, false));
-    item("phase1", pinspec(m->_pin_phase1, false));
-    item("phase2", pinspec(m->_pin_phase2, false));
-    item("phase3", pinspec(m->_pin_phase3, false));
+    pin_item("phase0_pin", m->_pin_phase0, false);
+    pin_item("phase1_pin", m->_pin_phase1, false);
+    pin_item("phase2_pin", m->_pin_phase2, false);
+    pin_item("phase3_pin", m->_pin_phase3, false);
     item("half_step", tf(m->_half_step));
     end_section();
 }
@@ -193,12 +206,58 @@ void print_dynamixel(Dynamixel2* m, int axis, int gang, const char* name = "dyna
 }
 void print_stepper(StandardStepper* m, int axis, int gang, const char* name) {
     print_motor(m, axis, gang, name);
-    item("direction", pinspec(m->_dir_pin, m->_invert_dir_pin));
-    item("step", pinspec(m->_step_pin, m->_invert_step_pin));
-    item("disable", pinspec(m->_disable_pin, false));
+    pin_item("direction_pin", m->_dir_pin, m->_invert_dir_pin);
+    pin_item("step_pin", m->_step_pin, m->_invert_step_pin);
+    pin_item("disable_pin", m->_disable_pin, false);
 }
 void print_stepstick(StandardStepper* m, int axis, int gang, const char* name) {
     print_stepper(m, axis, gang, name);
+    // item("ms1_pin", ???);
+    // item("ms2_pin", ???);
+    int ms3_pin = UNDEFINED_PIN;
+    switch (2 * axis + gang) {
+        case 0:
+            ms3_pin = X_STEPPER_MS3;
+            break;
+        case 1:
+            ms3_pin = X2_STEPPER_MS3;
+            break;
+        case 2:
+            ms3_pin = Y_STEPPER_MS3;
+            break;
+        case 3:
+            ms3_pin = Y2_STEPPER_MS3;
+            break;
+        case 4:
+            ms3_pin = Z_STEPPER_MS3;
+            break;
+        case 5:
+            ms3_pin = Z2_STEPPER_MS3;
+            break;
+        case 6:
+            ms3_pin = A_STEPPER_MS3;
+            break;
+        case 7:
+            ms3_pin = A2_STEPPER_MS3;
+            break;
+        case 8:
+            ms3_pin = B_STEPPER_MS3;
+            break;
+        case 9:
+            ms3_pin = B2_STEPPER_MS3;
+            break;
+        case 10:
+            ms3_pin = C_STEPPER_MS3;
+            break;
+        case 11:
+            ms3_pin = C2_STEPPER_MS3;
+            break;
+    }
+    pin_item("ms3_pin", ms3_pin);
+
+#ifdef STEPPER_RESET
+    pin_item("reset_pin", STEPPER_RESET);
+#endif
     end_section();
 }
 const char* trinamicModes(TrinamicMode mode) {
@@ -216,11 +275,11 @@ const char* trinamicModes(TrinamicMode mode) {
     return ret;
 }
 void print_trinamic_common(int axis, int gang, TrinamicMode run, TrinamicMode homing) {
-    item("run_current", axis_settings[axis]->run_current->get());
-    item("hold_current", axis_settings[axis]->hold_current->get());
+    item("run_amps", axis_settings[axis]->run_current->get());
+    item("hold_amps", axis_settings[axis]->hold_current->get());
     item("microsteps", axis_settings[axis]->microsteps->get());
     item("stallguard", axis_settings[axis]->stallguard->get());
-    item("stallguardDebugMode", false);
+    item("stallguard_debug", false);
     item("run_mode", trinamicModes(run));
     item("homing_mode", trinamicModes(homing));
 #ifdef USE_TRINAMIC_ENABLE
@@ -232,16 +291,20 @@ void print_trinamic_common(int axis, int gang, TrinamicMode run, TrinamicMode ho
     item("use_enable", tf(false));
 #endif
 }
+int  spi_index = 0;
 void print_trinamic_spi(TrinamicDriver* m, int axis, int gang, const char* name = "trinamic_spi") {
     print_stepper(m, axis, gang, name);
     print_trinamic_common(axis, gang, TRINAMIC_RUN_MODE, TRINAMIC_HOMING_MODE);
-    item("r_sense", m->_r_sense);
-    item("cs", pinspec(m->_cs_pin, true));
+    item("r_sense_ohms", m->_r_sense);
+    pin_item("cs_pin", m->_cs_pin, true);
+    item("spi_index", spi_index++);
     end_section();
 }
+int  tmc_addr = 0;
 void print_trinamic_uart(TrinamicUartDriver* m, int axis, int gang, const char* name = "trinamic_uart") {
     print_stepper(m, axis, gang, name);
-    item("r_sense", m->_r_sense);
+    item("r_sense_ohms", m->_r_sense);
+    item("addr", tmc_addr++);
     print_trinamic_common(axis, gang, TrinamicMode(TRINAMIC_UART_RUN_MODE), TrinamicMode(TRINAMIC_UART_HOMING_MODE));
     print_uart(TMC_UART, TMC_UART_TX, TMC_UART_RX, UNDEFINED_PIN, 115200, "8n1");
     end_section();
@@ -292,15 +355,13 @@ const char* axis_names[] = { "x", "y", "z", "a", "b", "c" };
 void        print_axes() {
     section("axes");
     int n_axis = number_axis->get();
-    item("number_axis", n_axis);
-    item("shared_stepper_disable", STEPPERS_DISABLE_PIN);
+    pin_item("shared_stepper_disable_pin", STEPPERS_DISABLE_PIN);
     for (int axis = 0; axis < n_axis; axis++) {
         section(axis_names[axis]);
         print_steps(axis);
         print_homing(axis);
         for (int gang = 0; gang < 2; gang++) {
-            print_endstops(axis, gang);
-            section(gang ? "gang1" : "gang0");
+            section(gang ? "motor1" : "motor0");
             print_endstops(axis, gang);
             print_motor_class(axis, gang);
             end_section();
@@ -310,7 +371,11 @@ void        print_axes() {
     end_section();
 }
 const char* engine_names[] = {
-    "Timed",
+    // We use RMT here instead of Timed because the native build disables
+    // USE_RMT_STEPS due to lack of native support for the RMT driver code
+    //    "Timed",
+    "RMT",
+
     "RMT",
     "I2S_stream",
     "I2S_static",
@@ -320,8 +385,8 @@ void print_stepping() {
     section("stepping");
     item("engine", engine_names[current_stepper]);
     item("idle_ms", stepper_idle_lock_time->get());
-    item("pulse_us", pulse_microseconds->get());
     item("dir_delay_us", direction_delay_microseconds->get());
+    item("pulse_us", pulse_microseconds->get());
     item("disable_delay_us", enable_delay_microseconds->get());
     end_section();
 }
@@ -329,19 +394,18 @@ void print_stepping() {
 void print_i2so() {
 #ifdef USE_I2S_OUT
     section("i2so");
-    item("bck", pinspec(I2S_OUT_BCK));
-    item("data", pinspec(I2S_OUT_DATA));
-    item("ws", pinspec(I2S_OUT_WS));
+    pin_item("bck_pin", I2S_OUT_BCK);
+    pin_item("data_pin", I2S_OUT_DATA);
+    pin_item("ws_pin", I2S_OUT_WS);
     end_section();
 #endif
 }
 void print_spi() {
     section("spi");
     // -1 is not the same as UNDEFINED_PIN; -1 means use the hardware default
-    item("cs", pinspec(GRBL_SPI_SS == -1 ? GPIO_NUM_5 : GRBL_SPI_SS));
-    item("miso", pinspec(GRBL_SPI_MISO == -1 ? GPIO_NUM_19 : GRBL_SPI_MISO));
-    item("mosi", pinspec(GRBL_SPI_MOSI == -1 ? GPIO_NUM_23 : GRBL_SPI_MOSI));
-    item("sck", pinspec(GRBL_SPI_SCK == -1 ? GPIO_NUM_18 : GRBL_SPI_SCK));
+    pin_item("miso_pin", GRBL_SPI_MISO == -1 ? GPIO_NUM_19 : GRBL_SPI_MISO);
+    pin_item("mosi_pin", GRBL_SPI_MOSI == -1 ? GPIO_NUM_23 : GRBL_SPI_MOSI);
+    pin_item("sck_pin", GRBL_SPI_SCK == -1 ? GPIO_NUM_18 : GRBL_SPI_SCK);
     end_section();
 }
 #ifndef CONTROL_SAFETY_DOOR_PIN
@@ -375,13 +439,13 @@ void print_control() {
     pu = false;
 #endif
     section("control");
-    item("safety_door", pinspec(CONTROL_SAFETY_DOOR_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 0), pu));
-    item("reset", pinspec(CONTROL_RESET_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 1), pu));
-    item("cycle_start", pinspec(CONTROL_CYCLE_START_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 3), pu));
-    item("macro0", pinspec(MACRO_BUTTON_0_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 4), pu));
-    item("macro1", pinspec(MACRO_BUTTON_1_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 5), pu));
-    item("macro2", pinspec(MACRO_BUTTON_2_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 6), pu));
-    item("macro3", pinspec(MACRO_BUTTON_3_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 7), pu));
+    pin_item("safety_door_pin", CONTROL_SAFETY_DOOR_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 0), pu);
+    pin_item("reset_pin", CONTROL_RESET_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 1), pu);
+    pin_item("cycle_start_pin", CONTROL_CYCLE_START_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 3), pu);
+    pin_item("macro0_pin", MACRO_BUTTON_0_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 4), pu);
+    pin_item("macro1_pin", MACRO_BUTTON_1_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 5), pu);
+    pin_item("macro2_pin", MACRO_BUTTON_2_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 6), pu);
+    pin_item("macro3_pin", MACRO_BUTTON_3_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 7), pu);
     end_section();
 }
 #ifndef COOLANT_FLOOD_PIN
@@ -396,12 +460,12 @@ void print_coolant() {
 #ifdef INVERT_COOLANT_FLOOD_PIN
     floodlow = true;
 #endif
-    item("flood", pinspec(COOLANT_FLOOD_PIN, floodlow, floodlow));
+    pin_item("flood_pin", COOLANT_FLOOD_PIN, floodlow, floodlow);
     bool mistlow = false;
 #ifdef INVERT_COOLANT_MIST_PIN
     mistlow = true;
 #endif
-    item("mist", pinspec(COOLANT_MIST_PIN, mistlow, mistlow));
+    pin_item("mist_pin", COOLANT_MIST_PIN, mistlow, mistlow);
     item("delay_ms", coolant_start_delay->get() * 1000);
     end_section();
 }
@@ -411,7 +475,7 @@ void print_probe() {
 #ifdef DISABLE_PROBE_PIN_INPUT_PULLUP
     pu = false;
 #endif
-    item("pin", pinspec(PROBE_PIN, probe_invert->get(), pu));
+    pin_item("pin", PROBE_PIN, probe_invert->get(), pu);
     bool cms = false;
 #ifdef SET_CHECK_MODE_PROBE_TO_START
     cms = true;
@@ -452,11 +516,13 @@ void print_bt() {
     end_section();
 #endif
 }
+#if 0
+// Comms are now NVS settings
 void print_comms() {
     // Radio mode???
 
     section("comms");
-#ifdef ENABLE_WIFI
+#    ifdef ENABLE_WIFI
     item("telnet_enable", telnet_enable->get());
     item("telnet_port", telnet_port->get());
 
@@ -467,17 +533,17 @@ void print_comms() {
 
     print_ap();
     print_sta();
-#endif
-#ifdef ENABLE_BLUETOOTH
+#    endif
+#    ifdef ENABLE_BLUETOOTH
     print_bt();
-#endif
+#    endif
     end_section();
 }
-// notifications?
+#endif
 void print_macros() {
     section("macros");
-    item("n0", startup_line_0->get());
-    item("n1", startup_line_1->get());
+    item("startup_line0", startup_line_0->get());
+    item("startup_line1", startup_line_1->get());
     item("macro0", user_macro0->get());
     item("macro1", user_macro1->get());
     item("macro2", user_macro2->get());
@@ -502,20 +568,20 @@ void print_spindle(const char* name, Spindle* s) {
     section(name);
     item("spinup_ms", s->_spinup_delay);
     item("spindown_ms", s->_spindown_delay);
-    item("tool", int(0));
+    item("tool_num", int(0));
     item("speeds", makeSpeedMap(static_cast<PWM*>(s)));
 }
 void print_onoff_spindle(const char* name, PWM* s) {
     print_spindle(name, s);
-    item("output_pin", pinspec(s->_output_pin, s->_invert_pwm, false));
-    item("enable_pin", pinspec(s->_enable_pin));
-    item("direction_pin", pinspec(s->_direction_pin));
-    item("disable_with_zero_speed", bool(s->_off_with_zero_speed));
-    item("zero_speed_with_disable", false);
+    pin_item("output_pin", s->_output_pin, s->_invert_pwm, false);
+    pin_item("enable_pin", s->_enable_pin);
+    pin_item("direction_pin", s->_direction_pin);
+    item("disable_with_s0", bool(s->_off_with_zero_speed));
+    item("s0_with_disable", false);
 }
 void print_pwm_spindle(const char* name, PWM* s) {
     print_onoff_spindle(name, s);
-    item("pwm_freq", s->_pwm_freq);
+    item("pwm_hz", s->_pwm_freq);
 }
 void print_relay_spindle(Relay* s) {
     print_onoff_spindle("relay", s);
@@ -542,6 +608,12 @@ void print_besc_spindle(BESC* s) {
 
 void print_10v_spindle(_10v* s) {
     print_pwm_spindle("10v", s);
+#ifdef SPINDLE_FORWARD_PIN
+    pin_item("forward_pin", SPINDLE_FORWARD_PIN);
+#endif
+#ifdef SPINDLE_REVERSE_PIN
+    pin_item("reverse_pin", SPINDLE_REVERSE_PIN);
+#endif
     end_section();
 }
 
@@ -585,6 +657,9 @@ void print_vfd_spindle(const char* name, VFD* s) {
                "8n1"
 #endif
     );
+#ifdef VFD_RS485_ADDR
+    item("modbus_id", VFD_RS485_ADDR);
+#endif
     end_section();
 }
 
@@ -609,7 +684,7 @@ void print_spindle_class() {
         case int8_t(SpindleType::NONE):
             break;
         case int8_t(SpindleType::PWM):
-            print_pwm_spindle("pwm", static_cast<PWM*>(s));
+            print_pwm_spindle("PWM", static_cast<PWM*>(s));
             end_section();
             break;
         case int8_t(SpindleType::RELAY):
@@ -638,6 +713,72 @@ void print_spindle_class() {
             break;
     }
 }
+void print_start() {
+    section("start");
+
+    bool hil = false;
+#ifdef HOMING_INIT_LOCK
+    hil = true;
+#endif
+    item("must_home", tf(hil));
+
+    bool clai = false;
+#ifdef CHECK_LIMITS_AT_INIT
+    clai = true;
+#endif
+    item("check_limits", tf(clai));
+
+    bool dpoi = false;
+#ifdef DEACTIVATE_PARKING_UPON_INIT
+    dpoi = true;
+#endif
+    item("deactivate_parking_upon_init", tf(dpoi));
+    end_section();
+}
+
+void print_sdcard() {
+    section("sdcard");
+    pin_item("cs_pin", GRBL_SPI_SS == -1 ? GPIO_NUM_5 : GRBL_SPI_SS);
+    pin_item("card_detect_pin", SDCARD_DET_PIN);
+    end_section();
+}
+void print_user_outputs() {
+    section("user_outputs");
+#if USER_ANALOG_PIN_0 != UNDEFINED_PIN
+    pin_item("analog0_pin", USER_ANALOG_PIN_0);
+#    ifdef USER_ANALOG_PIN_0_FREQ
+    item("analog0_hz", USER_ANALOG_PIN_0_FREQ);
+#    endif
+#endif
+
+#if USER_ANALOG_PIN_1 != UNDEFINED_PIN
+    pin_item("analog1_pin", USER_ANALOG_PIN_1);
+#    ifdef USER_ANALOG_PIN_1_FREQ
+    item("analog1_hz", USER_ANALOG_PIN_1_FREQ);
+#    endif
+#endif
+
+#if USER_ANALOG_PIN_2 != UNDEFINED_PIN
+    pin_item("analog2_pin", USER_ANALOG_PIN_2);
+#    ifdef USER_ANALOG_PIN_2_FREQ
+    item("analog2_hz", USER_ANALOG_PIN_2_FREQ);
+#    endif
+#endif
+
+#if USER_ANALOG_PIN_3 != UNDEFINED_PIN
+    pin_item("analog3_pin", USER_ANALOG_PIN_3);
+#    ifdef USER_ANALOG_PIN_3_FREQ
+    item("analog3_hz", USER_ANALOG_PIN_3_FREQ);
+#    endif
+#endif
+
+    pin_item("digital0_pin", USER_DIGITAL_PIN_0);
+    pin_item("digital1_pin", USER_DIGITAL_PIN_1);
+    pin_item("digital2_pin", USER_DIGITAL_PIN_2);
+    pin_item("digital3_pin", USER_DIGITAL_PIN_3);
+    end_section();
+}
+
 void dump_config() {
     item("name", MACHINE_NAME);
 #ifdef USE_I2S_OUT
@@ -649,29 +790,25 @@ void dump_config() {
     print_axes();
     print_i2so();
     print_spi();
+    print_sdcard();
     print_control();
     print_coolant();
     print_probe();
-    print_comms();
     print_macros();
+    print_start();
+    print_user_outputs();
+    print_spindle_class();
 
+    p("\n");
     int db = 0;
 #ifdef ENABLE_SOFTWARE_DEBOUNCE
     db = DEBOUNCE_PERIOD;
 #endif
     item("software_debounce_ms", db);
     // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?
-    item("laser_mode", laser_mode->get());
-    item("arc_tolerance", arc_tolerance->get());
-    item("junction_deviation", junction_deviation->get());
+    item("arc_tolerance_mm", arc_tolerance->get());
+    item("junction_deviation_mm", junction_deviation->get());
     item("verbose_errors", verbose_errors->get());
-
-    bool hil = false;
-#ifdef HOMING_INIT_LOCK
-    hil = true;
-#endif
-    item("homing_init_lock", tf(hil));
-
     item("report_inches", report_inches->get());
 
     bool epoc = false;
@@ -680,35 +817,9 @@ void dump_config() {
 #endif
     item("enable_parking_override_control", tf(epoc));
 
-    bool dpoi = false;
-#ifdef DEACTIVATE_PARKING_UPON_INIT
-    dpoi = true;
-#endif
-    item("deactivate_parking_upon_init", tf(dpoi));
-
-    bool clai = false;
-#ifdef CHECK_LIMITS_AT_INIT
-    clai = true;
-#endif
-    item("check_limits_at_init", tf(clai));
-
-    bool l2soa = false;
-#ifdef LIMITS_TWO_SWITCHES_ON_AXES
-    l2soa = true;
-#endif
-    item("limits_two_switches_on_axis", tf(l2soa));
-
-    bool dldh = false;
-#ifdef DISABLE_LASER_DURING_HOLD
-    dldh = true;
-#endif
-    item("disable_laser_during_hold", tf(dldh));
-
     bool uln = false;
 #ifdef USE_LINE_NUMBERS
     uln = true;
 #endif
     item("use_line_numbers", uln);
-
-    print_spindle_class();
 }

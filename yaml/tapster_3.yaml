@@ -1,34 +1,23 @@
-
-board: unknown
 name: Tapster 3 Delta (Dynamixel)
+board: unknown
+
 stepping:
-  engine: Timed Steps
+  engine: RMT
   idle_ms: 200
-  pulse_us: 3
   dir_delay_us: 0
+  pulse_us: 3
   disable_delay_us: 0
+
 axes:
-  number_axis: 3
-  shared_stepper_disable: 255
   x:
     steps_per_mm: 800.000
-    max_rate: 200.000
-    acceleration: 200.000
-    max_travel: 2.618
+    max_rate_mm_per_min: 200.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 2.618
     soft_limits: false
-    homing:
-      cycle: 1
-      positive_direction: false
-      mpos: -1.047
-      debounce: 250.000
-      pulloff: 1.000
-      square: false
-      seek_rate: 2000.000
-      feed_rate: 200.000
-      seek_scaler: 1.100
-      feed_scaler: 5.000
-    gang0:
+    motor0:
       Dynamixel2:
+        timer_ms: 50.000
         invert_direction: false
         count_min: 1332.227
         count_max: 3039.159
@@ -37,30 +26,19 @@ axes:
           txd_pin: gpio.4
           rxd_pin: gpio.13
           rts_pin: gpio.17
-          cts_pin: NO_PIN
           baud: 1000000
           mode: 8n1
-    gang1:
+    motor1:
       null_motor:
   y:
     steps_per_mm: 800.000
-    max_rate: 200.000
-    acceleration: 200.000
-    max_travel: 2.618
+    max_rate_mm_per_min: 200.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 2.618
     soft_limits: false
-    homing:
-      cycle: 1
-      positive_direction: false
-      mpos: -1.047
-      debounce: 250.000
-      pulloff: 1.000
-      square: false
-      seek_rate: 2000.000
-      feed_rate: 200.000
-      seek_scaler: 1.100
-      feed_scaler: 5.000
-    gang0:
+    motor0:
       Dynamixel2:
+        timer_ms: 50.000
         invert_direction: false
         count_min: 1332.227
         count_max: 3039.159
@@ -69,30 +47,19 @@ axes:
           txd_pin: gpio.4
           rxd_pin: gpio.13
           rts_pin: gpio.17
-          cts_pin: NO_PIN
           baud: 1000000
           mode: 8n1
-    gang1:
+    motor1:
       null_motor:
   z:
     steps_per_mm: 800.000
-    max_rate: 200.000
-    acceleration: 200.000
-    max_travel: 2.618
+    max_rate_mm_per_min: 200.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 2.618
     soft_limits: false
-    homing:
-      cycle: 1
-      positive_direction: false
-      mpos: -1.047
-      debounce: 250.000
-      pulloff: 1.000
-      square: false
-      seek_rate: 2000.000
-      feed_rate: 200.000
-      seek_scaler: 1.100
-      feed_scaler: 5.000
-    gang0:
+    motor0:
       Dynamixel2:
+        timer_ms: 50.000
         invert_direction: false
         count_min: 1332.227
         count_max: 3039.159
@@ -101,49 +68,55 @@ axes:
           txd_pin: gpio.4
           rxd_pin: gpio.13
           rts_pin: gpio.17
-          cts_pin: NO_PIN
           baud: 1000000
           mode: 8n1
-    gang1:
+    motor1:
       null_motor:
+
 spi:
-  cs: gpio.5
-  miso: gpio.19
-  mosi: gpio.23
-  sck: gpio.18
+  miso_pin: gpio.19
+  mosi_pin: gpio.23
+  sck_pin: gpio.18
+
+sdcard:
+  cs_pin: gpio.5
+
 control:
-  safety_door: NO_PIN
-  reset: NO_PIN
-  cycle_start: NO_PIN
-  macro0: NO_PIN
-  macro1: NO_PIN
-  macro2: NO_PIN
-  macro3: NO_PIN
+
 coolant:
-  flood: NO_PIN
-  mist: NO_PIN
   delay_ms: 1000.000
+
 probe:
-  pin: NO_PIN
   check_mode_start: false
-comms:
+
 macros:
-  n0: 
-  n1: 
+  startup_line0: 
+  startup_line1: 
   macro0: 
   macro1: 
   macro2: 
   macro3: 
+
+start:
+  must_home: true
+  check_limits: true
+  deactivate_parking_upon_init: false
+
+user_outputs:
+  analog0_pin: gpio.2
+  analog0_hz: 50
+  analog1_pin: gpio.15
+  analog1_hz: 50
+  analog2_pin: gpio.16
+  analog2_hz: 50
+  digital0_pin: gpio.25
+  digital1_pin: gpio.26
+  digital2_pin: gpio.27
+
 software_debounce_ms: 0
-laser_mode: false
-arc_tolerance: 0.002
-junction_deviation: 0.010
+arc_tolerance_mm: 0.002
+junction_deviation_mm: 0.010
 verbose_errors: false
-homing_init_lock: true
 report_inches: false
 enable_parking_override_control: false
-deactivate_parking_upon_init: false
-check_limits_at_init: true
-limits_two_switches_on_axis: false
-disable_laser_during_hold: true
 use_line_numbers: false

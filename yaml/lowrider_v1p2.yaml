@@ -1,160 +1,111 @@
-
-board: unknown
 name: LOWRIDER YYZZX V1P2 
+board: unknown
+
 stepping:
-  engine: Timed Steps
+  engine: RMT
   idle_ms: 250
-  pulse_us: 3
   dir_delay_us: 0
+  pulse_us: 3
   disable_delay_us: 0
+
 axes:
-  number_axis: 3
-  shared_stepper_disable: 13
+  shared_stepper_disable_pin: gpio.13
   x:
     steps_per_mm: 100.000
-    max_rate: 1000.000
-    acceleration: 200.000
-    max_travel: 300.000
+    max_rate_mm_per_min: 1000.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 300.000
     soft_limits: false
-    homing:
-      cycle: 2
-      positive_direction: true
-      mpos: 0.000
-      debounce: 250.000
-      pulloff: 1.000
-      square: false
-      seek_rate: 2000.000
-      feed_rate: 200.000
-      seek_scaler: 1.100
-      feed_scaler: 5.000
-    endstops:
-      dual: gpio.15:low
+    motor0:
+      limit_all_pin: gpio.15:low
       hard_limits: false
-    gang0:
-      endstops:
-        dual: gpio.15:low
-        hard_limits: false
       stepstick:
-        direction: gpio.33
-        step: gpio.27
-        disable: NO_PIN
-    gang1:
+        direction_pin: gpio.33
+        step_pin: gpio.27
+    motor1:
       null_motor:
   y:
     steps_per_mm: 100.000
-    max_rate: 1000.000
-    acceleration: 200.000
-    max_travel: 300.000
+    max_rate_mm_per_min: 1000.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 300.000
     soft_limits: false
-    homing:
-      cycle: 2
-      positive_direction: true
-      mpos: 0.000
-      debounce: 250.000
-      pulloff: 1.000
-      square: true
-      seek_rate: 2000.000
-      feed_rate: 200.000
-      seek_scaler: 1.100
-      feed_scaler: 5.000
-    endstops:
-      dual: gpio.4:low
+    motor0:
+      limit_all_pin: gpio.4:low
       hard_limits: false
-    gang0:
-      endstops:
-        dual: gpio.4:low
-        hard_limits: false
       stepstick:
-        direction: gpio.26
-        step: gpio.12
-        disable: NO_PIN
-    gang1:
+        direction_pin: gpio.26
+        step_pin: gpio.12
+    motor1:
       stepstick:
-        direction: gpio.26
-        step: gpio.22
-        disable: NO_PIN
+        direction_pin: gpio.26
+        step_pin: gpio.22
   z:
     steps_per_mm: 100.000
-    max_rate: 1000.000
-    acceleration: 200.000
-    max_travel: 300.000
+    max_rate_mm_per_min: 1000.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 300.000
     soft_limits: false
-    homing:
-      cycle: 1
-      positive_direction: false
-      mpos: 0.000
-      debounce: 250.000
-      pulloff: 1.000
-      square: true
-      seek_rate: 2000.000
-      feed_rate: 200.000
-      seek_scaler: 1.100
-      feed_scaler: 5.000
-    endstops:
-      dual: gpio.17:low
+    motor0:
+      limit_all_pin: gpio.17:low
       hard_limits: false
-    gang0:
-      endstops:
-        dual: gpio.17:low
-        hard_limits: false
       stepstick:
-        direction: gpio.25
-        step: gpio.14
-        disable: NO_PIN
-    gang1:
+        direction_pin: gpio.25
+        step_pin: gpio.14
+    motor1:
       stepstick:
-        direction: gpio.25
-        step: gpio.21
-        disable: NO_PIN
+        direction_pin: gpio.25
+        step_pin: gpio.21
+
 spi:
-  cs: gpio.5
-  miso: gpio.19
-  mosi: gpio.23
-  sck: gpio.18
+  miso_pin: gpio.19
+  mosi_pin: gpio.23
+  sck_pin: gpio.18
+
+sdcard:
+  cs_pin: gpio.5
+
 control:
-  safety_door: NO_PIN
-  reset: gpio.34:low:pu
-  cycle_start: gpio.39:low:pu
-  macro0: NO_PIN
-  macro1: NO_PIN
-  macro2: NO_PIN
-  macro3: NO_PIN
+  reset_pin: gpio.34:low:pu
+  cycle_start_pin: gpio.39:low:pu
+
 coolant:
-  flood: NO_PIN
-  mist: NO_PIN
   delay_ms: 1000.000
+
 probe:
   pin: gpio.35:pu
   check_mode_start: false
-comms:
+
 macros:
-  n0: 
-  n1: 
+  startup_line0: 
+  startup_line1: 
   macro0: 
   macro1: 
   macro2: 
   macro3: 
-software_debounce_ms: 32
-laser_mode: false
-arc_tolerance: 0.002
-junction_deviation: 0.010
-verbose_errors: false
-homing_init_lock: true
-report_inches: false
-enable_parking_override_control: false
-deactivate_parking_upon_init: false
-check_limits_at_init: true
-limits_two_switches_on_axis: false
-disable_laser_during_hold: true
-use_line_numbers: false
-pwm:
+
+start:
+  must_home: true
+  check_limits: true
+  deactivate_parking_upon_init: false
+
+user_outputs:
+
+PWM:
   spinup_ms: 0
   spindown_ms: 0
-  tool: 0
-  speeds: 0=0% 1000=100%
-output_pin: gpio.16
-enable_pin: gpio.32
-direction_pin: NO_PIN
-disable_with_zero_speed: false
-zero_speed_with_disable: false
-pwm_freq: 5000
+  tool_num: 0
+  speeds: 0=0.0% 1000=100.0%
+  output_pin: gpio.16
+  enable_pin: gpio.32
+  disable_with_s0: false
+  s0_with_disable: false
+  pwm_hz: 5000
+
+software_debounce_ms: 32
+arc_tolerance_mm: 0.002
+junction_deviation_mm: 0.010
+verbose_errors: false
+report_inches: false
+enable_parking_override_control: false
+use_line_numbers: false
