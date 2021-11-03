@@ -122,6 +122,9 @@ Socket #5
 #define Z_LIMIT_PIN             GPIO_NUM_35
 #define PROBE_PIN               GPIO_NUM_34
 
+#define DEFAULT_INVERT_LIMIT_PINS       0
+#define DEFAULT_INVERT_PROBE_PIN        0
+
 
 // 5V output CNC module in socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
@@ -133,3 +136,5 @@ Socket #5
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
+
+
