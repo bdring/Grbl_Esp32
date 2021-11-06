@@ -100,7 +100,9 @@ namespace Motors {
     private:
         uint32_t calc_tstep(float speed, float percent);
 
-        TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
+        TMC2130Stepper* tmc2130 = nullptr;  
+        TMC2130Stepper* tmc5160 = nullptr;  
+
         TrinamicMode    _homing_mode;
         uint8_t         _cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
         uint16_t        _driver_part_number;      // example: use 2130 for TMC2130

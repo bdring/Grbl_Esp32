@@ -2,7 +2,13 @@
 
 # Grbl (CNC Controller) For ESP32
 
-<img src="https://user-images.githubusercontent.com/189677/93836185-74c27500-fc47-11ea-8bed-5d419974c196.jpg" width="600">
+<img src="https://github.com/bdring/FluidNC/wiki/images/hardware/20200711_120633.png" width="600">
+
+## Get the Next Generation!
+
+The next generation of Grbl_ESP32 was such a massive upgrade we decided to change the name. It is called **FluidNC** and is [available here](https://github.com/bdring/FluidNC). Please check it out and give us a star. It is compatible with all Grbl_ESP32 hardware.
+
+This version is only being maintained with existing features. All new features are targeted at FluidNC.
 
 ### Project Overview
 
