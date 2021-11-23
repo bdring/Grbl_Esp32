@@ -441,6 +441,7 @@ void print_control() {
     section("control");
     pin_item("safety_door_pin", CONTROL_SAFETY_DOOR_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 0), pu);
     pin_item("reset_pin", CONTROL_RESET_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 1), pu);
+    pin_item("feed_hold_pin", CONTROL_FEED_HOLD_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 2), pu);
     pin_item("cycle_start_pin", CONTROL_CYCLE_START_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 3), pu);
     pin_item("macro0_pin", MACRO_BUTTON_0_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 4), pu);
     pin_item("macro1_pin", MACRO_BUTTON_1_PIN, bitnum_istrue(INVERT_CONTROL_PIN_MASK, 5), pu);
