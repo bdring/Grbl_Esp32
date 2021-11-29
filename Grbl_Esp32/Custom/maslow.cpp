@@ -49,12 +49,10 @@ enabled with USE_ defines in Machines/my_machine.h
 
 TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
-esp_adc_cal_characteristics_t *adc_1_characterisitics = (esp_adc_cal_characteristics_t*) calloc(1, sizeof(esp_adc_cal_characteristics_t));
-
-MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, RSENSE, adc_1_characterisitics, MOTOR_1_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
-MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, adc_1_characterisitics, MOTOR_2_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
-MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
-MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1, printStall);
+MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, MOTOR_1_CS, printStall);
+MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, MOTOR_2_CS, printStall);
+MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, MOTOR_3_CS, printStall);
+MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, MOTOR_4_CS, printStall);
 
 //The xy coordinates of each of the anchor points
 float tlX;
@@ -246,40 +244,39 @@ void runCalibration(){
     
     //------------------------------------------------------Take measurements
     
-    takeMeasurementAvg(lengths1);//Repeat and throw away the first one
-    takeMeasurementAvg(lengths1);
+    takeMeasurementAvgWithCheck(lengths1);
     
     moveWithSlack(-200, 0);
     
-    takeMeasurementAvg(lengths2);
+    takeMeasurementAvgWithCheck(lengths2);
     
     moveWithSlack(-200, -200);
     
-    takeMeasurementAvg(lengths3);
+    takeMeasurementAvgWithCheck(lengths3);
     
     moveWithSlack(0, 200);
     
-    takeMeasurementAvg(lengths4);
+    takeMeasurementAvgWithCheck(lengths4);
     
     moveWithSlack(0, 0);
     
-    takeMeasurementAvg(lengths5);
+    takeMeasurementAvgWithCheck(lengths5);
     
     moveWithSlack(0, -200);
     
-    takeMeasurementAvg(lengths6);
+    takeMeasurementAvgWithCheck(lengths6);
     
     moveWithSlack(200, 200);
     
-    takeMeasurementAvg(lengths7);
+    takeMeasurementAvgWithCheck(lengths7);
     
     moveWithSlack(200, 0);
     
-    takeMeasurementAvg(lengths8);
+    takeMeasurementAvgWithCheck(lengths8);
     
     moveWithSlack(200, -200);
     
-    takeMeasurementAvg(lengths9);
+    takeMeasurementAvgWithCheck(lengths9);
     
     moveWithSlack(0, 0);  //Go back to the center. This will pull the lower belts tight too
     
@@ -390,7 +387,7 @@ void lowerBeltsGoSlack(){
     }
 }
 
-void printMeasurementMetrics(double avg, double m1, double m2, double m3, double m4, double m5){
+float printMeasurementMetrics(double avg, double m1, double m2, double m3, double m4, double m5){
     
     
     double m1Variation = myAbs(avg - m1);
@@ -404,11 +401,24 @@ void printMeasurementMetrics(double avg, double m1, double m2, double m3, double
     double avgDeviation = (m1Variation + m2Variation + m3Variation + m4Variation + m5Variation)/5.0;
     
     grbl_sendf(CLIENT_ALL, "Max deviation: %f, Avg deviation: %f\n", maxDeviation, avgDeviation);
+
+    return avgDeviation;
+}
+
+//Checks to make sure the deviation within the measurement avg looks good before moving on
+void takeMeasurementAvgWithCheck(float lengths[]){
+    float threshold = 0.5;
+    while(true){
+        if(takeMeasurementAvg(lengths) < threshold){
+            break;
+        }
+        grbl_sendf(CLIENT_ALL, "Repeating measurement");
+    }
 }
 
 //Takes 5 measurements and computes the average of them
-void takeMeasurementAvg(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "Begining to take averaged measurement.\n");
+float takeMeasurementAvg(float lengths[]){
+    grbl_sendf(CLIENT_ALL, "Beginning to take averaged measurement.\n");
     
     //Where our five measurements will be stored
     float lengths1[4];
@@ -434,10 +444,12 @@ void takeMeasurementAvg(float lengths[]){
     lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
     lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
     
-    printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
-    printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
-    printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
-    printMeasurementMetrics(lengths[3], lengths1[3], lengths2[3], lengths3[3], lengths4[3], lengths5[3]);
+    float m1 = printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
+    float m2 = printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
+    float m3 = printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
+    float m4 = printMeasurementMetrics(lengths[3], lengths1[3], lengths2[3], lengths3[3], lengths4[3], lengths5[3]);
+
+    return (m1+m2+m3+m4)/4.0;
 }
 
 //Retract the lower belts until they pull tight and take a measurement
@@ -449,7 +461,7 @@ void takeMeasurement(float lengths[]){
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        int currentThreshold = 12;
+        int currentThreshold = 14;
         
         if(axisBL.getCurrent() > currentThreshold || axisBLDone){
             axisBLDone = true;
@@ -606,11 +618,12 @@ bool user_defined_homing(uint8_t cycle_mask)
   grbl_sendf(CLIENT_ALL, "Extending\n");
   
   if(cycle_mask == 1){  //Top left
-    axisTL.testEncoder();
+    grbl_sendf(CLIENT_ALL, "Encoder test %d\n", axisTL.testEncoder());
     axisTLHomed = axisTL.retract(computeTL(-200, 200, 0));
   }
   else if(cycle_mask == 2){  //Top right
     axisTR.testEncoder();
+    Serial.println("Top right recognized");
     axisTRHomed = axisTR.retract(computeTR(-200, 200, 0));
   }
   else if(cycle_mask == 4){ //Bottom right
@@ -681,9 +694,9 @@ void kinematics_post_homing()
 #ifdef USE_FWD_KINEMATIC
 /*
   The status command uses forward_kinematics() to convert
-  your motor positions to cartesian X,Y,Z... coordinates.
+  your motor positions to Cartesian X,Y,Z... coordinates.
 
-  Convert the N_AXIS array of motor positions to cartesian in your code.
+  Convert the N_AXIS array of motor positions to Cartesian in your code.
 */
 void forward_kinematics(float *position)
 {

@@ -77,8 +77,6 @@
 #define TLC_DATA   16
 #define TLC_CLOCK  21
 
-#define RSENSE 10000
-
 #define MOTOR_1_ADC ADC1_GPIO33_CHANNEL
 #define MOTOR_1_FORWARD 1
 #define MOTOR_1_BACKWARD 0
@@ -113,7 +111,8 @@ float computeBL(float x, float y, float z);
 float computeBR(float x, float y, float z);
 void runCalibration();
 void lowerBeltsGoSlack();
-void takeMeasurementAvg(float lengths[]);
+float takeMeasurementAvg(float lengths[]);
+void takeMeasurementAvgWithCheck(float lengths[]);
 void moveWithSlack(float x, float y);
 void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float machineDimensions[]);
 float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower);
