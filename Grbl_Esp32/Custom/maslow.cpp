@@ -209,7 +209,7 @@ void setTargets(float xTarget, float yTarget, float zTarget){
     
     if(!calibrationInProgress){
         if(random(0,3000) == 5){
-            grbl_sendf(CLIENT_ALL, "Position errors: %f, %f, %f, %f.\n", axisTL.getError(), axisTR.getError(), axisBL.getError(), axisBR.getError());
+            grbl_sendf(CLIENT_ALL, "Position errors: tl: %f, tr: %f, bl: %f, br: %f.\n", axisTL.getError(), axisTR.getError(), axisBL.getError(), axisBR.getError());
         }
         axisBL.setTarget(computeBL(xTarget, yTarget, zTarget));
         axisBR.setTarget(computeBR(xTarget, yTarget, zTarget));
@@ -315,7 +315,7 @@ void runCalibration(){
     grbl_sendf(CLIENT_ALL, "After computing calibration %f\n", results[5]);
     
     if(results[5] < 2){
-        grbl_sendf(CLIENT_ALL, "Calibration successful with precision %f\n", results[5]);
+        grbl_sendf(CLIENT_ALL, "Calibration successful with precision %f \n\n", results[5]);
         tlX = results[0];
         tlY = results[1];
         trX = results[2];
@@ -407,12 +407,14 @@ float printMeasurementMetrics(double avg, double m1, double m2, double m3, doubl
 
 //Checks to make sure the deviation within the measurement avg looks good before moving on
 void takeMeasurementAvgWithCheck(float lengths[]){
-    float threshold = 0.5;
+    float threshold = 0.25;
     while(true){
-        if(takeMeasurementAvg(lengths) < threshold){
+        float repeatability = takeMeasurementAvg(lengths);
+        if(repeatability < threshold){
+            grbl_sendf(CLIENT_ALL, "Using measurement with precision %f", repeatability);
             break;
         }
-        grbl_sendf(CLIENT_ALL, "Repeating measurement");
+        grbl_sendf(CLIENT_ALL, "Repeating measurement\n");
     }
 }
 
