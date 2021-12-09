@@ -733,7 +733,7 @@ void print_start() {
 #ifdef DEACTIVATE_PARKING_UPON_INIT
     dpoi = true;
 #endif
-    item("deactivate_parking_upon_init", tf(dpoi));
+    item("deactivate_parking", tf(dpoi));
     end_section();
 }
 
@@ -780,6 +780,30 @@ void print_user_outputs() {
     end_section();
 }
 
+void print_kinematics() {
+    section("kinematics");
+#ifdef CUSTOM_CODE_FILENAME
+    if (!strcmp(CUSTOM_CODE_FILENAME, "../Custom/CoreXY.cpp")) {
+#    ifdef MIDTBOT
+        section("midtbot");
+#    else
+        section("CoreXY");
+#    endif
+        end_section();
+    } else if (!strcmp(CUSTOM_CODE_FILENAME, "../Custom/parallel_delta.cpp")) {
+        section("ParallelDelta");
+        end_section();
+    } else if (!strcmp(CUSTOM_CODE_FILENAME, "../Custom/polar_coaster.cpp")) {
+        section("PolarCoaster");
+        end_section();
+    }
+#else
+    section("Cartesian");
+    end_section();
+#endif
+    end_section();
+}
+
 void dump_config() {
     item("name", MACHINE_NAME);
 #ifdef USE_I2S_OUT
@@ -787,6 +811,7 @@ void dump_config() {
 #else
     item("board", "unknown");
 #endif
+    print_kinematics();
     print_stepping();
     print_axes();
     print_i2so();
@@ -801,11 +826,14 @@ void dump_config() {
     print_spindle_class();
 
     p("\n");
+
     int db = 0;
 #ifdef ENABLE_SOFTWARE_DEBOUNCE
     db = DEBOUNCE_PERIOD;
 #endif
-    item("software_debounce_ms", db);
+    // FluidNC does not support software debounce yet
+    // item("software_debounce_ms", db);
+
     // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?
     item("arc_tolerance_mm", arc_tolerance->get());
     item("junction_deviation_mm", junction_deviation->get());
