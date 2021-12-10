@@ -1,4 +1,4 @@
-name: FluidNC Release Builder
+name: FluidNC Configuration Generator
 
 on:
   workflow_dispatch:
