@@ -10,8 +10,11 @@ from pathlib import Path
 
 env = dict(os.environ)
 
+# pioEnv='windows'
+pioEnv='native'
+
 def convertMachine(baseName, verbose=True, extraArgs=None):
-    cmd = ['platformio','run','-enative']
+    cmd = ['platformio','run','-e', pioEnv]
     if extraArgs:
         cmd.append(extraArgs)
     displayName = baseName
@@ -28,7 +31,7 @@ def convertMachine(baseName, verbose=True, extraArgs=None):
                 print(line, end='')
     app.wait()
     if app.returncode == 0:
-        cmd = [ '.pio/build/native/program.exe' ]
+        cmd = [ '.pio/build/' + pioEnv + '/program.exe' ]
         out_filename = "yaml/" + Path(baseName).stem + ".yaml"
         app = subprocess.Popen(cmd, env=env, stdout=open(out_filename, "w"), stderr=subprocess.STDOUT, bufsize=1)
         app.wait()
