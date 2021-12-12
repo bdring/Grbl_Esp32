@@ -24,8 +24,6 @@
 namespace Spindles {
     class H2A : public VFD {
     protected:
-        void default_modbus_settings(uart_config_t& uart) override;
-
         void direction_command(SpindleState mode, ModbusCommand& data) override;
         void set_speed_command(uint32_t rpm, ModbusCommand& data) override;
 
@@ -36,5 +34,8 @@ namespace Spindles {
 
         bool supports_actual_rpm() const override { return true; }
         bool safety_polling() const override { return false; }
+
+    public:
+        H2A();
     };
 }

@@ -80,4 +80,5 @@ std::map<Error, const char*> ErrorNames = {
     { Error::NvsGetStatsFailed, "Failed to get setting status" },
     { Error::AuthenticationFailed, "Authentication failed!" },
     { Error::AnotherInterfaceBusy, "Another interface is busy" },
+    { Error::JogCancelled, "Jog Cancelled" },
 };

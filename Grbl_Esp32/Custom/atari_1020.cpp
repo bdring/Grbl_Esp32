@@ -75,15 +75,12 @@ void machine_init() {
 // this task tracks the Z position and sets the solenoid
 void solenoidSyncTask(void* pvParameters) {
     int32_t          current_position[N_AXIS];  // copy of current location
-    float            m_pos[N_AXIS];             // machine position in mm
     TickType_t       xLastWakeTime;
     const TickType_t xSolenoidFrequency = SOLENOID_TASK_FREQ;   // in ticks (typically ms)
     xLastWakeTime                       = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
     while (true) {
         // don't ever return from this or the task dies
-        memcpy(current_position, sys_position, sizeof(sys_position));  // get current position in step
-        system_convert_array_steps_to_mpos(m_pos, current_position);   // convert to millimeters
-        calc_solenoid(m_pos[Z_AXIS]);                                  // calculate kinematics and move the servos
+        calc_solenoid(system_get_mpos()[Z_AXIS]);  // calculate kinematics and move the servos
         vTaskDelayUntil(&xLastWakeTime, xSolenoidFrequency);
     }
 }

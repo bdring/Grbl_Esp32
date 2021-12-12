@@ -192,6 +192,7 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
     if (sys.state == State::CheckMode) {
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Check mode");
         mc_reset();
         report_feedback_message(Message::Disabled);
     } else {

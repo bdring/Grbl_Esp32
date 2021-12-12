@@ -75,18 +75,8 @@
                         b11: reserved
 */
 
-#include <driver/uart.h>
-
 namespace Spindles {
-    void YL620::default_modbus_settings(uart_config_t& uart) {
-        // sets the uart to 9600 8N1
-        VFD::default_modbus_settings(uart);
-
-        uart.baud_rate = 9600;
-        uart.data_bits = UART_DATA_8_BITS;
-        uart.parity    = UART_PARITY_DISABLE;
-        uart.stop_bits = UART_STOP_BITS_1;
-    }
+    YL620::YL620() : VFD() {}
 
     void YL620::direction_command(SpindleState mode, ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
@@ -94,20 +84,20 @@ namespace Spindles {
         data.rx_length = 6;
 
         // data.msg[0] is omitted (modbus address is filled in later)
-        data.msg[1] = 0x06;     // 06: write output register
-        data.msg[2] = 0x20;     // 0x2000: command register address
+        data.msg[1] = 0x06;  // 06: write output register
+        data.msg[2] = 0x20;  // 0x2000: command register address
         data.msg[3] = 0x00;
 
-        data.msg[4] = 0x00;     // High-Byte of command always 0x00
+        data.msg[4] = 0x00;  // High-Byte of command always 0x00
         switch (mode) {
             case SpindleState::Cw:
-                data.msg[5] = 0x12;     // Start in forward direction
+                data.msg[5] = 0x12;  // Start in forward direction
                 break;
             case SpindleState::Ccw:
-                data.msg[5] = 0x22;     // Start in reverse direction
+                data.msg[5] = 0x22;  // Start in reverse direction
                 break;
-            default:  // SpindleState::Disable
-                data.msg[5] = 0x01;     // Disable spindle
+            default:                 // SpindleState::Disable
+                data.msg[5] = 0x01;  // Disable spindle
                 break;
         }
     }
@@ -118,17 +108,17 @@ namespace Spindles {
         data.rx_length = 6;
 
         // We have to know the max RPM before we can set the current RPM:
-        auto max_rpm = this->_max_rpm;
+        auto max_rpm       = this->_max_rpm;
         auto max_frequency = this->_maxFrequency;
 
         uint16_t freqFromRPM = (uint16_t(rpm) * uint16_t(max_frequency)) / uint16_t(max_rpm);
-        
-        #ifdef VFD_DEBUG_MODE
+
+#ifdef VFD_DEBUG_MODE
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "For %d RPM the output frequency is set to %d Hz*10", int(rpm), int(freqFromRPM));
-        #endif
+#endif
 
         data.msg[1] = 0x06;
-        data.msg[2] = 0x20; 
+        data.msg[2] = 0x20;
         data.msg[3] = 0x01;
         data.msg[4] = uint8_t(freqFromRPM >> 8);
         data.msg[5] = uint8_t(freqFromRPM & 0xFF);
@@ -136,7 +126,6 @@ namespace Spindles {
 
     VFD::response_parser YL620::initialization_sequence(int index, ModbusCommand& data) {
         if (index == -1) {
-            
             // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
             data.rx_length = 5;
@@ -144,7 +133,7 @@ namespace Spindles {
             data.msg[1] = 0x03;
             data.msg[2] = 0x03;
             data.msg[3] = 0x08;
-            data.msg[4] = 0x00; 
+            data.msg[4] = 0x00;
             data.msg[5] = 0x01;
 
             //  Recv: 01 03 02 03 E8 xx xx
@@ -152,15 +141,14 @@ namespace Spindles {
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 auto yl620           = static_cast<YL620*>(vfd);
                 yl620->_minFrequency = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
-                
-                #ifdef VFD_DEBUG_MODE
+
+#ifdef VFD_DEBUG_MODE
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "YL620 allows minimum frequency of %d Hz", int(yl620->_minFrequency));
-                #endif
+#endif
 
                 return true;
             };
-        }
-        else if (index == -2) {
+        } else if (index == -2) {
             // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
             data.rx_length = 5;
@@ -168,7 +156,7 @@ namespace Spindles {
             data.msg[1] = 0x03;
             data.msg[2] = 0x00;
             data.msg[3] = 0x00;
-            data.msg[4] = 0x00; 
+            data.msg[4] = 0x00;
             data.msg[5] = 0x01;
 
             //  Recv: 01 03 02 0F A0 xx xx
@@ -177,18 +165,21 @@ namespace Spindles {
                 auto yl620           = static_cast<YL620*>(vfd);
                 yl620->_maxFrequency = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
 
-                vfd->_min_rpm = uint32_t(yl620->_minFrequency) * uint32_t(vfd->_max_rpm) / uint32_t(yl620->_maxFrequency);  //   1000 * 24000 / 4000 =   6000 RPM.
+                vfd->_min_rpm = uint32_t(yl620->_minFrequency) * uint32_t(vfd->_max_rpm) /
+                                uint32_t(yl620->_maxFrequency);  //   1000 * 24000 / 4000 =   6000 RPM.
 
-                
-                #ifdef VFD_DEBUG_MODE
+#ifdef VFD_DEBUG_MODE
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "YL620 allows maximum frequency of %d Hz", int(yl620->_maxFrequency));
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Configured maxRPM of %d RPM results in minRPM of %d RPM", int(vfd->_max_rpm), int(vfd->_min_rpm));
-                #endif
+                grbl_msg_sendf(CLIENT_SERIAL,
+                               MsgLevel::Info,
+                               "Configured maxRPM of %d RPM results in minRPM of %d RPM",
+                               int(vfd->_max_rpm),
+                               int(vfd->_min_rpm));
+#endif
 
                 return true;
             };
-        }
-        else {
+        } else {
             return nullptr;
         }
     }
@@ -200,7 +191,7 @@ namespace Spindles {
 
         // Send: 01 03 200B 0001
         data.msg[1] = 0x03;
-        data.msg[2] = 0x20; 
+        data.msg[2] = 0x20;
         data.msg[3] = 0x0B;
         data.msg[4] = 0x00;
         data.msg[5] = 0x01;
@@ -210,7 +201,7 @@ namespace Spindles {
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t freq = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
 
-            auto yl620           = static_cast<YL620*>(vfd);
+            auto yl620 = static_cast<YL620*>(vfd);
 
             uint16_t rpm = freq * uint16_t(vfd->_max_rpm) / uint16_t(yl620->_maxFrequency);
 
@@ -226,10 +217,10 @@ namespace Spindles {
         data.rx_length = 5;
 
         // Send: 01 03 20 00 00 01
-        data.msg[1] = 0x03;  
-        data.msg[2] = 0x20;  
+        data.msg[1] = 0x03;
+        data.msg[2] = 0x20;
         data.msg[3] = 0x00;
-        data.msg[4] = 0x00;  
+        data.msg[4] = 0x00;
         data.msg[5] = 0x01;
 
         // Receive: 01 03 02 00 0A xx xx

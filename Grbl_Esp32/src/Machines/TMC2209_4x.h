@@ -75,12 +75,12 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_25
 
 
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
-#define USER_DIGITAL_PIN_0      GPIO_NUM_4 //  M62 M63
-#define USER_DIGITAL_PIN_1      GPIO_NUM_13 //  M62 M63
-#define USER_DIGITAL_PIN_2      GPIO_NUM_17 //  M62 M63
-#define USER_DIGITAL_PIN_3      GPIO_NUM_12 //  M62 M63
+// Built in I/O
+#define SPINDLE_TYPE                SpindleType::PWM
+#define SPINDLE_OUTPUT_PIN          GPIO_NUM_4   
+#define SPINDLE_ENABLE_PIN          GPIO_NUM_13  
+#define COOLANT_MIST_PIN            GPIO_NUM_17  // M7 on M9 Off
+#define COOLANT_FLOOD_PIN           GPIO_NUM_12  // M8 on M9 off
 
 
 // ===================== defaults ======================

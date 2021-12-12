@@ -132,7 +132,6 @@ void printToWeb (double precision){
 
 void recomputePID(){
     //Stop everything but keep track of the encoder positions if we are idle or alarm. Unless doing calibration.
-    
     if((sys.state == State::Idle || sys.state == State::Alarm) && !calibrationInProgress){
         axisBL.stop();
         axisBL.updateEncoderPosition();

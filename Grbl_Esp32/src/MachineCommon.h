@@ -11,7 +11,7 @@
 #    define GRBL_SPI_MOSI -1
 #    define GRBL_SPI_MISO -1
 #    define GRBL_SPI_SCK -1
-#    define GRBL_SPI_FREQ 4000000
+#    define GRBL_SPI_FREQ 1000000
 #endif
 
 // ESP32 CPU Settings

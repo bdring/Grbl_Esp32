@@ -103,7 +103,7 @@ bool can_park() {
   GRBL PRIMARY LOOP:
 */
 void protocol_main_loop() {
-    serial_reset_read_buffer(CLIENT_ALL);
+    client_reset_read_buffer(CLIENT_ALL);
     empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
@@ -135,7 +135,7 @@ void protocol_main_loop() {
     // Primary loop! Upon a system abort, this exits back to main() to reset the system.
     // This is also where Grbl idles while waiting for something to do.
     // ---------------------------------------------------------------------------------
-    uint8_t c;
+    int c;
     for (;;) {
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
@@ -157,7 +157,7 @@ void protocol_main_loop() {
         uint8_t client = CLIENT_SERIAL;
         char*   line;
         for (client = 0; client < CLIENT_COUNT; client++) {
-            while ((c = serial_read(client)) != SERIAL_NO_DATA) {
+            while ((c = client_read(client)) != -1) {
                 Error res = add_char_to_line(c, client);
                 switch (res) {
                     case Error::Ok:
@@ -239,23 +239,15 @@ void protocol_auto_cycle_start() {
 // NOTE: The sys_rt_exec_state.bit variable flags are set by any process, step or serial interrupts, pinouts,
 // limit switches, or the main program.
 void protocol_execute_realtime() {
-    
-    
+    Serial.println("test");
     int32_t current_position[N_AXIS]; // Copy current state of the system position variable
     memcpy(current_position, sys_position, sizeof(sys_position));
     float print_position[N_AXIS];
     system_convert_array_steps_to_mpos(print_position, current_position);
     
-    // Serial.print("XYZ: ");
-    // Serial.print(print_position[0]);
-    // Serial.print(" ");
-    // Serial.print(print_position[1]);
-    // Serial.print(" ");
-    // Serial.println(print_position[2]);
-    
     recomputePID();
     setTargets(print_position[0], print_position[1], print_position[2]);
-    
+
     protocol_exec_rt_system();
     if (sys.suspend.value) {
         protocol_exec_rt_suspend();
@@ -549,7 +541,6 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
     float             restore_target[MAX_N_AXIS];
-    float             parking_target[MAX_N_AXIS];
     float             retract_waypoint = PARKING_PULLOUT_INCREMENT;
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
@@ -584,12 +575,21 @@ static void protocol_exec_rt_suspend() {
         if (sys.abort) {
             return;
         }
+        // if a jogCancel comes in and we have a jog "in-flight" (parsed and handed over to mc_line()),
+        //  then we need to cancel it before it reaches the planner.  otherwise we may try to move way out of
+        //  normal bounds, especially with senders that issue a series of jog commands before sending a cancel.
+        if (sys.suspend.bit.jogCancel && sys_pl_data_inflight != NULL && ((plan_line_data_t*)sys_pl_data_inflight)->is_jog) {
+            sys_pl_data_inflight = NULL;
+        }
         // Block until initial hold is complete and the machine has stopped motion.
         if (sys.suspend.bit.holdComplete) {
             // Parking manager. Handles de/re-energizing, switch state checks, and parking motions for
             // the safety door and sleep states.
             if (sys.state == State::SafetyDoor || sys.state == State::Sleep) {
                 // Handles retraction motions and de-energizing.
+#ifdef PARKING_ENABLE
+                float* parking_target = system_get_mpos();
+#endif
                 if (!sys.suspend.bit.retractComplete) {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
                     sys.spindle_stop_ovr.value = 0;  // Disable override
@@ -598,9 +598,8 @@ static void protocol_exec_rt_suspend() {
                     coolant_off();
 #else
                     // Get current position and store restore location and spindle retract waypoint.
-                    system_convert_array_steps_to_mpos(parking_target, sys_position);
                     if (!sys.suspend.bit.restartRetract) {
-                        memcpy(restore_target, parking_target, sizeof(parking_target));
+                        memcpy(restore_target, parking_target, sizeof(restore_target[0]) * number_axis->get());
                         retract_waypoint += restore_target[PARKING_AXIS];
                         retract_waypoint = MIN(retract_waypoint, PARKING_TARGET);
                     }

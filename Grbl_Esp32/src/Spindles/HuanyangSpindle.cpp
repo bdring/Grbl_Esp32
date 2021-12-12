@@ -149,15 +149,10 @@
     If the frequency is -say- 25 Hz, Huanyang wants us to send 2500 (eg. 25.00 Hz).
 */
 
-#include <driver/uart.h>
-
 namespace Spindles {
-    void Huanyang::default_modbus_settings(uart_config_t& uart) {
-        // sets the uart to 9600 8N1
-        VFD::default_modbus_settings(uart);
-
-        // uart.baud_rate = 9600;
-        // Baud rate is set in the PD164 setting.
+    Huanyang::Huanyang() : VFD() {
+        // Baud rate is set in the PD164 setting.  If it is not 9600, add, for example,
+        // _baudrate = 19200;
     }
 
     void Huanyang::direction_command(SpindleState mode, ModbusCommand& data) {
