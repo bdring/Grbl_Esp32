@@ -28,7 +28,13 @@ class WiFiClient;
 namespace WebUI {
     class Telnet_Server {
         //how many clients should be able to telnet to this ESP32
+#ifdef NATIVE
+        // For some reason, the system crashes when calling destructors
+        // on the _telnetClients[] array.
+        static const int MAX_TLNT_CLIENTS = 0;
+#else
         static const int MAX_TLNT_CLIENTS = 1;
+#endif
 
         static const int TELNETRXBUFFERSIZE = 1200;
         static const int FLUSHTIMEOUT       = 500;

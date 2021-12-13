@@ -34,9 +34,7 @@ def convertMachine(baseName, verbose=True, extraArgs=None):
         out_filename = "yaml/" + Path(baseName).stem + ".yaml"
         proc = subprocess.run(cmd, env=env, stdout=open(out_filename, "w"), stderr=subprocess.STDOUT, bufsize=1)
         print("FluidNC Configuration written to", out_filename)
-        print("ret ", proc.returncode)
-        # return proc.returncode
-        return 0
+        return proc.returncode
     else:
         out_filename = "yaml/" + Path(baseName).stem + ".ERROR"
         open(out_filename, "w")
