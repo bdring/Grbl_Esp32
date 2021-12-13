@@ -1,7 +1,7 @@
-#include "Grbl.h"
-#include "Motors/Motor.h"
 #include "Motors/TrinamicDriver.h"
 #include "Motors/TrinamicUartDriver.h"
+#include "Grbl.h"
+#include "Motors/Motor.h"
 #include "Motors/Dynamixel2.h"
 #include "Motors/Servo.h"
 #include "Motors/RcServo.h"
@@ -824,8 +824,6 @@ void dump_config() {
     print_start();
     print_user_outputs();
     print_spindle_class();
-
-    p("\n");
 
     int db = 0;
 #ifdef ENABLE_SOFTWARE_DEBOUNCE

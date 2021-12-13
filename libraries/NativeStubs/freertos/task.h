@@ -18,9 +18,13 @@ const BaseType_t     pdTRUE  = 1;
 const BaseType_t     pdFALSE = 0;
 const BaseType_t     pdPASS  = 0;
 inline void          vTaskDelay(TickType_t ticks) {}
-inline BaseType_t    xQueueReceive(QueueHandle_t xQueue, void* pvBuffer, TickType_t xTicksToWait) {}
-inline xQueueHandle  xQueueCreate(int n, int len) {}
-inline BaseType_t    xQueueReset(QueueHandle_t queue) {
+inline BaseType_t    xQueueReceive(QueueHandle_t xQueue, void* pvBuffer, TickType_t xTicksToWait) {
+    return pdFALSE;
+}
+inline xQueueHandle xQueueCreate(int n, int len) {
+    return nullptr;
+}
+inline BaseType_t xQueueReset(QueueHandle_t queue) {
     return pdPASS;
 }
 inline BaseType_t xQueueSend(QueueHandle_t queue, void* item, TickType_t ticks) {
@@ -29,9 +33,13 @@ inline BaseType_t xQueueSend(QueueHandle_t queue, void* item, TickType_t ticks) 
 inline BaseType_t xQueueSendFromISR(QueueHandle_t queue, void* item, void* p) {
     return pdTRUE;
 }
-inline TaskHandle_t xTaskCreate(void (*task)(void*), const char* name, int stacksize, void* arg0, int pri, TaskHandle_t* th) {}
+inline TaskHandle_t xTaskCreate(void (*task)(void*), const char* name, int stacksize, void* arg0, int pri, TaskHandle_t* th) {
+    return nullptr;
+}
 inline TaskHandle_t xTaskCreatePinnedToCore(
-    void (*task)(void*), const char* name, int stacksize, void* arg0, int pri, TaskHandle_t* th, int core) {}
+    void (*task)(void*), const char* name, int stacksize, void* arg0, int pri, TaskHandle_t* th, int core) {
+    return nullptr;
+}
 inline int xTaskGetTickCount() {
     return 0;
 }

@@ -27,7 +27,7 @@
 #endif
 #include <FS.h>
 #include <SPIFFS.h>
-#ifndef NATIVE
+#ifndef EPOXY_DUINO
 #    include <esp_wifi.h>
 #    include <esp_ota_ops.h>
 #endif
@@ -248,7 +248,7 @@ namespace WebUI {
 #else
         webPrint("no");
 #endif
-#ifndef NATIVE
+#ifndef EPOXY_DUINO
 #    if defined(ENABLE_WIFI)
 #        if defined(ENABLE_HTTP)
         webPrint(" # webcommunication: Sync: ", String(web_server.port() + 1));
@@ -281,8 +281,10 @@ namespace WebUI {
 
     static Error SPIFFSSize(char* parameter, AuthenticationLevel auth_level) {  // ESP720
         webPrint(parameter);
+#ifndef EPOXY_DUINO
         webPrint("SPIFFS  Total:", ESPResponseStream::formatBytes(SPIFFS.totalBytes()));
         webPrintln(" Used:", ESPResponseStream::formatBytes(SPIFFS.usedBytes()));
+#endif
         return Error::Ok;
     }
 
@@ -292,13 +294,15 @@ namespace WebUI {
             return Error::InvalidValue;
         }
         webPrint("Formatting");
+#ifndef EPOXY_DUINO
         SPIFFS.format();
+#endif
         webPrintln("...Done");
         return Error::Ok;
     }
 
     static Error runLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
-#ifndef NATIVE
+#ifndef EPOXY_DUINO
         if (sys.state != State::Idle) {
             webPrintln("Busy");
             return Error::IdleError;
@@ -311,7 +315,7 @@ namespace WebUI {
             webPrintln("Error: No such file!");
             return Error::FsFileNotFound;
         }
-        File currentfile = SPIFFS.open(path, FILE_READ);
+        File currentfile = SPIFFS.open(path, "r");
         if (!currentfile) {  //if file open success
             return Error::FsFailedOpenFile;
         }
@@ -334,7 +338,7 @@ namespace WebUI {
         currentfile.close();
         return accumErr;
 #else
-        Error::Ok;
+        return Error::Ok;
 #endif
     }
 
@@ -346,11 +350,12 @@ namespace WebUI {
         if ((path.length() > 0) && (path[0] != '/')) {
             path = "/" + path;
         }
+#ifndef EPOXY_DUINO
         if (!SPIFFS.exists(path)) {
             webPrintln("Error: No such file!");
             return Error::FsFileNotFound;
         }
-        File currentfile = SPIFFS.open(path, FILE_READ);
+        File currentfile = SPIFFS.open(path, "r");
         if (!currentfile) {
             return Error::FsFailedOpenFile;
         }
@@ -362,6 +367,7 @@ namespace WebUI {
             webPrintln(currentfile.readStringUntil('\n'));
         }
         currentfile.close();
+#endif
         return Error::Ok;
     }
 
@@ -431,7 +437,7 @@ namespace WebUI {
     }
 
     static Error showSysStats(char* parameter, AuthenticationLevel auth_level) {  // ESP420
-#ifndef NATIVE
+#ifndef EPOXY_DUINO
         webPrintln("Chip ID: ", String((uint16_t)(ESP.getEfuseMac() >> 32)));
         webPrintln("CPU Frequency: ", String(ESP.getCpuFreqMHz()) + "Mhz");
         webPrintln("CPU Temperature: ", String(temperatureRead(), 1) + "C");
@@ -455,7 +461,9 @@ namespace WebUI {
                 }
             }
             webPrintln("Available Size for update: ", ESPResponseStream::formatBytes(flashsize));
+#        ifndef EPOXY_DUINO
             webPrintln("Available Size for SPIFFS: ", ESPResponseStream::formatBytes(SPIFFS.totalBytes()));
+#        endif
 
 #        if defined(ENABLE_HTTP)
             webPrintln("Web port: ", String(web_server.port()));
@@ -615,7 +623,7 @@ namespace WebUI {
 
 #ifdef ENABLE_WIFI
     static Error listAPs(char* parameter, AuthenticationLevel auth_level) {  // ESP410
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
         JSONencoder j(espresponse->client() != CLIENT_WEBUI);
         j.begin();
         j.begin_array("AP_LIST");
@@ -706,11 +714,13 @@ namespace WebUI {
                 return Error::FsFailedBusy;
             }
         }
+#    ifndef EPOXY_DUINO
         if (!openFile(SD, path.c_str())) {
             report_status_message(Error::FsFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
             return Error::FsFailedOpenFile;
         }
+#    endif
         return Error::Ok;
     }
     static Error showSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP221
@@ -775,7 +785,8 @@ namespace WebUI {
         if (parameter[0] != '/') {
             path = "/" + path;
         }
-        File file2del = SD.open(path);
+#    ifndef EPOXY_DUINO
+        File file2del = SD.open(path, "r");
         if (!file2del) {
             webPrintln("Cannot stat file!");
             return Error::FsFileNotFound;
@@ -794,11 +805,12 @@ namespace WebUI {
             webPrintln("File deleted.");
         }
         file2del.close();
+#    endif
         return Error::Ok;
     }
 
     static Error listSDFiles(char* parameter, AuthenticationLevel auth_level) {  // ESP210
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
         SDState state = get_sd_state(true);
         if (state != SDState::Idle) {
             if (state == SDState::NotPresent) {
@@ -824,7 +836,8 @@ namespace WebUI {
 
     void listDirLocalFS(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
         //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
-        File root = fs.open(dirname);
+#ifndef EPOXY_DUINO
+        File root = fs.open(dirname, "r");
         if (!root) {
             //FIXME: need proper error for FS and not usd sd one
             report_status_message(Error::FsFailedOpenDir, client);
@@ -846,21 +859,25 @@ namespace WebUI {
             }
             file = root.openNextFile();
         }
+#endif
     }
 
     static Error listLocalFiles(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
         webPrintln("");
+#ifndef EPOXY_DUINO
         listDirLocalFS(SPIFFS, "/", 10, espresponse->client());
         String ssd = "[Local FS Free:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes() - SPIFFS.usedBytes());
         ssd += " Used:" + ESPResponseStream::formatBytes(SPIFFS.usedBytes());
         ssd += " Total:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes());
         ssd += "]";
         webPrintln(ssd);
+#endif
         return Error::Ok;
     }
 
     static void listDirJSON(fs::FS& fs, const char* dirname, uint8_t levels, JSONencoder* j) {
-        File root = fs.open(dirname);
+#ifndef EPOXY_DUINO
+        File root = fs.open(dirname, "r");
         File file = root.openNextFile();
         while (file) {
             const char* tailName = strchr(file.name(), '/');
@@ -877,17 +894,20 @@ namespace WebUI {
             }
             file = root.openNextFile();
         }
+#endif
     }
 
     static Error listLocalFilesJSON(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
         JSONencoder j(espresponse->client() != CLIENT_WEBUI);
         j.begin();
         j.begin_array("files");
+#ifndef EPOXY_DUINO
         listDirJSON(SPIFFS, "/", 4, &j);
         j.end_array();
         j.member("total", SPIFFS.totalBytes());
         j.member("used", SPIFFS.usedBytes());
         j.member("occupation", String(100 * SPIFFS.usedBytes() / SPIFFS.totalBytes()));
+#endif
         webPrint(j.end());
         if (espresponse->client() != CLIENT_WEBUI) {
             webPrintln("");
@@ -916,7 +936,7 @@ namespace WebUI {
     }
 
     static Error setRadioState(char* parameter, AuthenticationLevel auth_level) {  // ESP115
-#ifndef NATIVE
+#ifndef EPOXY_DUINO
         parameter = trim(parameter);
         if (*parameter == '\0') {
             // Display the radio state
@@ -993,7 +1013,7 @@ namespace WebUI {
 
 #ifdef ENABLE_WIFI
     static Error showIP(char* parameter, AuthenticationLevel auth_level) {  // ESP111
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
         webPrintln(parameter, WiFi.getMode() == WIFI_STA ? WiFi.localIP() : WiFi.softAPIP());
 #    endif
         return Error::Ok;

@@ -20,7 +20,7 @@ public:
     BluetoothSerial(void)  = default;
     ~BluetoothSerial(void) = default;
 
-    bool begin(String localName = String(), bool isMaster = false) {}
+    bool begin(String localName = String(), bool isMaster = false) { return false; }
     void register_callback(void (*callback)(esp_spp_cb_event_t event, esp_spp_cb_param_t* param)) {}
     bool hasClient(void) { return false; }
     void end(void) {}

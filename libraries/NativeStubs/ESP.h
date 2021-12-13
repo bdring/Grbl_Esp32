@@ -19,8 +19,11 @@ inline uint32_t getApbFrequency() {
 }
 
 inline void gpio_reset_pin(uint8_t pin) {}
-inline int  digitalPinToInterrupt(uint8_t pin) {}
+inline int  digitalPinToInterrupt(uint8_t pin) {
+    return 0;
+}
 
+#ifndef EPOXY_DUINO
 // Most of the EspClass stuff is used by information reports,
 // except for restart()
 class EspClass {
@@ -33,11 +36,12 @@ public:
     inline uint32_t getFlashChipSize() { return 0x400000; }
 };
 extern EspClass ESP;
+#endif
 
 #define NO_TASKS
 
-inline void attachInterrupt(int pin, void (*isr_limit_switches)(), int change) {}
-inline void detachInterrupt(int pin) {}
+void attachInterrupt(uint8_t pin, void (*isr_limit_switches)(), int change);
+void detachInterrupt(uint8_t pin);
 
 inline void NOP() {}
 

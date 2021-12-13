@@ -20,7 +20,7 @@ inline esp_err_t nvs_get_i8(int _handle, const char* _keyName, signed char* valu
 inline esp_err_t nvs_set_i8(int _handle, const char* _keyName, int value) {
     return -1;
 }
-inline esp_err_t nvs_get_str(int _handle, const char* _keyName, void* p, unsigned int* len) {
+inline esp_err_t nvs_get_str(int _handle, const char* _keyName, void* p, size_t* len) {
     return -1;
 }
 inline esp_err_t nvs_set_str(int _handle, const char* _keyName, const char* value) {

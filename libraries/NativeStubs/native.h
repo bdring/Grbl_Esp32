@@ -2,19 +2,23 @@
 #include <ctype.h>
 #include <binary.h>
 
-inline bool isPrintable(int c) {
-    return (isprint(c) == 0 ? false : true);
-}
-
 #define IRAM_ATTR
 
 // The native compiler might not support __attribute__ ((weak))
 #define WEAK_FUNC
 
-// Unlike the ESP32 Arduino framework, EpoxyDuino does not have contrain() and map()
+#if EPOXY_DUINO_VERSION < 10000
+inline bool isPrintable(int c) {
+    return (isprint(c) == 0 ? false : true);
+}
+#else
+static const uint8_t SS = 1;
+#endif
 
+#if EPOXY_DUINO_VERSION < 10100
 // Templates don't work because of float/double promotion
-#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#    define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+#endif
 
 inline long map(long x, long in_min, long in_max, long out_min, long out_max) {
     const long dividend = out_max - out_min;
@@ -26,7 +30,9 @@ inline long map(long x, long in_min, long in_max, long out_min, long out_max) {
     return (delta * dividend + (divisor / 2)) / divisor + out_min;
 }
 
-#define M_PI 3.1415926536
+#ifndef M_PI  // native on linux
+#    define M_PI 3.1415926536
+#endif
 
 #define GPIO_NUM_0 0
 #define GPIO_NUM_1 1
@@ -68,19 +74,3 @@ inline long map(long x, long in_min, long in_max, long out_min, long out_max) {
 #define GPIO_NUM_37 37
 #define GPIO_NUM_38 38
 #define GPIO_NUM_39 39
-
-#if 0
-#    define INPUT 0x0
-#    define OUTPUT 0x1
-#    define INPUT_PULLUP 0x2
-
-#    define CHANGE 0x03
-
-// Define pins used by I2C and SPI.
-static const uint8_t SS   = 1;
-static const uint8_t MOSI = 2;
-static const uint8_t MISO = 3;
-static const uint8_t SCK  = 4;
-static const uint8_t SDA  = 5;
-static const uint8_t SCL  = 6;
-#endif

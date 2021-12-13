@@ -961,8 +961,12 @@ int IRAM_ATTR i2s_out_init() {
     return i2s_out_init(default_param);
 }
 #else
-int     i2s_out_init(i2s_out_init_t& init_param) {}
-int     i2s_out_init() {}
+int i2s_out_init(i2s_out_init_t& init_param) {
+    return 0;
+}
+int i2s_out_init() {
+    return 0;
+}
 uint8_t i2s_out_read(uint8_t pin) {
     return 0;
 }

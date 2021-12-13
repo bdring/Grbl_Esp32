@@ -1,4 +1,6 @@
-#include <FS.h>
+#include <Arduino.h>
+#if EPOXY_DUINO_VERSION < 10000
+#    include <FS.h>
 
 using namespace fs;
 
@@ -112,10 +114,11 @@ bool FS::rmdir(const String& path) {
     return rmdir(path.c_str());
 }
 
-#if 0
+#    if 0
 void FSImpl::mountpoint(const char* mp) {}
 
 const char* FSImpl::mountpoint() {
     return "";
 }
+#    endif
 #endif

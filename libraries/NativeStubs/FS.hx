@@ -1,3 +1,4 @@
+#if EPOXY_DUINO_VERSION < 10000
 #pragma once
 
 #include <Stream.h>
@@ -61,3 +62,4 @@ using fs::SeekCur;
 using fs::SeekEnd;
 using fs::SeekMode;
 using fs::SeekSet;
+#endif

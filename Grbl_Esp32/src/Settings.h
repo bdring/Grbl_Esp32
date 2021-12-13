@@ -9,7 +9,7 @@ typedef struct {
     int free_entries;
     int total_entries;
 } nvs_stats_t;
-inline nvs_get_stats(void* p, nvs_stats_t* r) {
+inline int nvs_get_stats(void* p, nvs_stats_t* r) {
     return -1;
 }
 inline void nvs_erase_all(nvs_handle h) {}

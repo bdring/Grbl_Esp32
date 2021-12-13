@@ -23,7 +23,7 @@
 #ifdef ENABLE_WIFI
 
 #    include <WiFi.h>
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
 #        include <esp_wifi.h>
 #        include <ESPmDNS.h>
 #        include <FS.h>
@@ -54,7 +54,7 @@ namespace WebUI {
         String        tmp;
         result = "[MSG:";
 
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
         if ((WiFi.getMode() == WIFI_MODE_STA) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
             result += "Mode=STA:SSID=";
             result += WiFi.SSID();
@@ -212,7 +212,7 @@ namespace WebUI {
      */
 
     void WiFiConfig::WiFiEvent(WiFiEvent_t event) {
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
         switch (event) {
             case SYSTEM_EVENT_STA_GOT_IP:
                 grbl_sendf(CLIENT_ALL, "[MSG:Connected with %s]\r\n", WiFi.localIP().toString().c_str());
@@ -244,7 +244,7 @@ namespace WebUI {
      */
 
     bool WiFiConfig::ConnectSTA2AP() {
-#    ifdef NATIVE
+#    ifdef EPOXY_DUINO
         return false;
 #    else
         String      msg, msg_out;
@@ -285,7 +285,7 @@ namespace WebUI {
      */
 
     bool WiFiConfig::StartSTA() {
-#    ifdef NATIVE
+#    ifdef EPOXY_DUINO
         return false;
 #    else
         //stop active service
@@ -334,7 +334,7 @@ namespace WebUI {
      */
 
     bool WiFiConfig::StartAP() {
-#    ifdef NATIVE
+#    ifdef EPOXY_DUINO
         return false;
 #    else
         //stop active services
@@ -384,7 +384,7 @@ namespace WebUI {
      */
 
     void WiFiConfig::StopWiFi() {
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
         //Sanity check
         if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect(true);
@@ -404,7 +404,7 @@ namespace WebUI {
      * begin WiFi setup
      */
     void WiFiConfig::begin() {
-#    ifndef NATIVE
+#    ifndef EPOXY_DUINO
         //stop active services
         wifi_services.end();
         //setup events
@@ -455,7 +455,7 @@ namespace WebUI {
         grbl_send(CLIENT_ALL, "[MSG:WiFi reset done]\r\n");
     }
     bool WiFiConfig::Is_WiFi_on() {
-#    ifdef NATIVE
+#    ifdef EPOXY_DUINO
         return false;
 #    else
         return !(WiFi.getMode() == WIFI_MODE_NULL);

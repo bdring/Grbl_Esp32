@@ -1,6 +1,8 @@
 #pragma once
+#include <Arduino.h>
+#if EPOXY_DUINO_VERSION < 10000
 
-#include <FS.h>
+#    include <FS.h>
 
 namespace fs {
     class SPIFFSFS : public FS {
@@ -22,3 +24,4 @@ namespace fs {
 }
 
 extern fs::SPIFFSFS SPIFFS;
+#endif

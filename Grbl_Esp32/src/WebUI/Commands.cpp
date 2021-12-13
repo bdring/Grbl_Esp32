@@ -74,7 +74,9 @@ namespace WebUI {
         COMMANDS::wait(0);
         //in case of restart requested
         if (restart_ESP_module) {
+#ifndef EPOXY_DUINO
             ESP.restart();
+#endif
             while (1) {}
         }
     }

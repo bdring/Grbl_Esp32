@@ -5,7 +5,13 @@
 #include "Grbl.h"
 
 #ifdef NATIVE
-#    include <conio.h>
+#    if __WIN32
+#        include <conio.h>
+#    else
+#        define putch putchar
+#        define getch getchar
+#        define kbhit() 0
+#    endif
 Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)), _pushback(-1) {}
 
 void Uart::begin(unsigned long baudrate, Data dataBits, Stop stopBits, Parity parity) {}

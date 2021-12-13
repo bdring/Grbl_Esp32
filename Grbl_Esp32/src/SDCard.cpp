@@ -41,7 +41,7 @@ static char                comment[LINE_BUFFER_SIZE];  // Line to be executed. Z
 
 void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
-    File root = fs.open(dirname);
+    File root = fs.open(dirname, "r");
     if (!root) {
         report_status_message(Error::FsFailedOpenDir, client);
         return;
@@ -64,7 +64,7 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
 }
 
 boolean openFile(fs::FS& fs, const char* path) {
-    myFile = fs.open(path);
+    myFile = fs.open(path, "r");
     if (!myFile) {
         //report_status_message(Error::FsFailedRead, CLIENT_SERIAL);
         return false;
