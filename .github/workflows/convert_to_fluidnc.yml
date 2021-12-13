@@ -32,7 +32,7 @@ jobs:
     - name: Build
       run: |
         python convert-machine.py User.h
-    - name: Upload mac bundle
+    - name: Upload result
       uses: actions/upload-artifact@v2
       with:
         name: FluidNC_Config
