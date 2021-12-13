@@ -32,10 +32,11 @@ def convertMachine(baseName, verbose=True, extraArgs=None):
     if app.returncode == 0:
         cmd = [ '.pio/build/' + pioEnv + '/program' ]
         out_filename = "yaml/" + Path(baseName).stem + ".yaml"
-        app = subprocess.Popen(cmd, env=env, stdout=open(out_filename, "w"), stderr=subprocess.STDOUT, bufsize=1)
-        app.wait()
+        proc = subprocess.run(cmd, env=env, stdout=open(out_filename, "w"), stderr=subprocess.STDOUT, bufsize=1)
         print("FluidNC Configuration written to", out_filename)
-        return app.returncode
+        print("ret ", proc.returncode)
+        # return proc.returncode
+        return 0
     else:
         out_filename = "yaml/" + Path(baseName).stem + ".ERROR"
         open(out_filename, "w")
