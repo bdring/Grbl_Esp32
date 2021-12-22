@@ -4,8 +4,8 @@ on:
     types:
       - opened
 jobs:
-  add-comment:
-    if: contains(github.event.issue.title, 'translate machine file')
+  convert-from-issue:
+    if: contains(github.event.issue.title, 'Translate Machine.h')
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -51,7 +51,7 @@ jobs:
           mv $file_path Grbl_Esp32/src/Machines/convert-job.h
           python convert-machine.py convert-job.h
           echo 'file_content<<EOF' >> $GITHUB_ENV
-          cat cat yaml/convert-job.yaml >> $GITHUB_ENV
+          cat yaml/convert-job.yaml >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Add comment
