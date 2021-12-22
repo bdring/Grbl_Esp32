@@ -97,7 +97,7 @@ namespace Motors {
         bool set_homing_mode(bool is_homing) override;
         void set_disable(bool disable) override;
 
-        const char* name() override { return _driver_part_number == 2008 ? "tmc_2008" : "tmc_2009"; }
+        const char* name() override { return _driver_part_number == 2208 ? "tmc_2208" : "tmc_2209"; }
 
         uint8_t addr;
 

@@ -134,23 +134,23 @@ void WEAK_FUNC display_init() {}
 void WEAK_FUNC user_m30() {}
 
 void WEAK_FUNC user_tool_change(uint8_t new_tool) {}
+
 #ifdef NATIVE
 //  setup() and loop() in the Arduino .ino implements this control flow:
 
-#    ifdef EMIT_YAML
-#        include "System.h"
-#    endif
-int main(int arc, char** argv) {
-    grbl_init();  // setup()
+void setup() {
+    grbl_init();
+}
+void loop() {
 #    ifdef EMIT_YAML
     char line[10];
     strcpy(line, "$cd");
     system_execute_line(line, uint8_t(CLIENT_SERIAL), WebUI::AuthenticationLevel::LEVEL_ADMIN);
     Uart0.flush();
+    exit(0);
 #    else
-    while (1) {  // loop()
-        run_once();
-    }
+    run_once();
 #    endif
 }
+
 #endif
