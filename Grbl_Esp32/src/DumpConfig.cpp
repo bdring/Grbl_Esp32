@@ -306,7 +306,9 @@ void print_trinamic_uart(TrinamicUartDriver* m, int axis, int gang, const char* 
     item("r_sense_ohms", m->_r_sense);
     item("addr", tmc_addr++);
     print_trinamic_common(axis, gang, TrinamicMode(TRINAMIC_UART_RUN_MODE), TrinamicMode(TRINAMIC_UART_HOMING_MODE));
-    print_uart(TMC_UART, TMC_UART_TX, TMC_UART_RX, UNDEFINED_PIN, 115200, "8n1");
+    if (tmc_addr == 1) {
+        print_uart(TMC_UART, TMC_UART_TX, TMC_UART_RX, UNDEFINED_PIN, 115200, "8N1");
+    }
     end_section();
 }
 void print_null_motor(Motor* m, int axis, int gang, const char* name) {
