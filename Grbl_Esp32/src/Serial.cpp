@@ -130,6 +130,36 @@ void client_init() {
 
 static uint8_t getClientChar(uint8_t* data) {
     int res;
+    // An earlier client will block i/o for a later client while it has data available.
+    // So clients should be ordered by likelihood of being used interactively.
+    if (client_buffer[CLIENT_INPUT].availableforwrite() && WebUI::inputBuffer.available()) {
+        *data = WebUI::inputBuffer.read();
+        return CLIENT_INPUT;
+    }
+    //currently is wifi or BT but better to prepare both can be live
+#ifdef ENABLE_BLUETOOTH
+    if (client_buffer[CLIENT_BT].availableforwrite() && WebUI::SerialBT.hasClient()) {
+        if ((res = WebUI::SerialBT.read()) != -1) {
+            *data = res;
+            return CLIENT_BT;
+        }
+    }
+#endif
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
+    if (client_buffer[CLIENT_WEBUI].availableforwrite() && WebUI::Serial2Socket.available()) {
+        *data = WebUI::Serial2Socket.read();
+        return CLIENT_WEBUI;
+    }
+#endif
+
+    // The clients below here are most likely to be non-interactive, or have
+    // interactive complementary clients.
+#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
+    if (client_buffer[CLIENT_TELNET].availableforwrite() && WebUI::telnet_server.available()) {
+        *data = WebUI::telnet_server.read();
+        return CLIENT_TELNET;
+    }
+#endif
 #ifdef REVERT_TO_ARDUINO_SERIAL
     if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Serial.read()) != -1) {
 #else
@@ -138,31 +168,6 @@ static uint8_t getClientChar(uint8_t* data) {
         *data = res;
         return CLIENT_SERIAL;
     }
-    if (WebUI::inputBuffer.available()) {
-        *data = WebUI::inputBuffer.read();
-        return CLIENT_INPUT;
-    }
-    //currently is wifi or BT but better to prepare both can be live
-#ifdef ENABLE_BLUETOOTH
-    if (WebUI::SerialBT.hasClient()) {
-        if ((res = WebUI::SerialBT.read()) != -1) {
-            *data = res;
-            return CLIENT_BT;
-        }
-    }
-#endif
-#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-    if (WebUI::Serial2Socket.available()) {
-        *data = WebUI::Serial2Socket.read();
-        return CLIENT_WEBUI;
-    }
-#endif
-#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-    if (WebUI::telnet_server.available()) {
-        *data = WebUI::telnet_server.read();
-        return CLIENT_TELNET;
-    }
-#endif
     return CLIENT_ALL;
 }
 
