@@ -535,7 +535,7 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // NOTE: Most setting changes - $ commands - are blocked when a job is running. Coordinate setting
 // GCode commands (G10,G28/30.1) are not blocked, since they are part of an active streaming job.
 // This option forces a planner buffer sync only with such GCode commands.
-//#define FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // Default enabled. Comment to disable.
+#define FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // Default enabled. Comment to disable.
 
 // In Grbl v0.9 and prior, there is an old outstanding bug where the `WPos:` work position reported
 // may not correlate to what is executing, because `WPos:` is based on the GCode parser state, which

@@ -138,6 +138,7 @@ extern volatile Percent       sys_rt_f_override;               // Feed override 
 extern volatile Percent       sys_rt_r_override;               // Rapid feed override value in percent
 extern volatile Percent       sys_rt_s_override;               // Spindle override value in percent
 extern volatile bool          cycle_stop;
+extern volatile void* sys_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
 #ifdef DEBUG
 extern volatile bool sys_rt_exec_debug;
 #endif
@@ -164,7 +165,8 @@ void  system_flag_wco_change();
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx);
 
 // Updates a machine 'position' array based on the 'step' array sent.
-void system_convert_array_steps_to_mpos(float* position, int32_t* steps);
+void   system_convert_array_steps_to_mpos(float* position, int32_t* steps);
+float* system_get_mpos();
 
 // A task that runs after a control switch interrupt for debouncing.
 void controlCheckTask(void* pvParameters);

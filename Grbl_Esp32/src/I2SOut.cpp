@@ -48,6 +48,7 @@
 #include "WebUI/ESPResponse.h"
 #include "Probe.h"
 #include "System.h"
+#include "Serial.h"
 #include "Report.h"
 
 #include <FreeRTOS.h>

@@ -24,10 +24,8 @@
 namespace Spindles {
     class YL620 : public VFD {
     protected:
-        uint16_t _minFrequency = 0;    // frequency lower limit. Factor 10 of actual frequency
+        uint16_t _minFrequency = 0;     // frequency lower limit. Factor 10 of actual frequency
         uint16_t _maxFrequency = 4000;  // max frequency the VFD will allow. Normally 400.0. Factor 10 of actual frequency
-        
-        void default_modbus_settings(uart_config_t& uart) override;
 
         void direction_command(SpindleState mode, ModbusCommand& data) override;
         void set_speed_command(uint32_t rpm, ModbusCommand& data) override;
@@ -39,5 +37,8 @@ namespace Spindles {
 
         bool supports_actual_rpm() const override { return true; }
         bool safety_polling() const override { return false; }
+
+    public:
+        YL620();
     };
 }

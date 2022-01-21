@@ -30,7 +30,7 @@ void grbl_init() {
     WiFi.enableSTA(false);
     WiFi.enableAP(false);
     WiFi.mode(WIFI_OFF);
-    serial_init();  // Setup serial baud rate and interrupts
+    client_init();  // Setup serial baud rate and interrupts
     display_init();
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
@@ -40,7 +40,7 @@ void grbl_init() {
 #endif
     settings_init();  // Load Grbl settings from non-volatile storage
     stepper_init();   // Configure stepper pins and interrupt timers
-    system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
+    system_ini();     // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     init_motors();
     memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
     machine_init();                                 // weak definition in Grbl.cpp does nothing
@@ -93,8 +93,8 @@ static void reset_variables() {
     sys_rt_s_override                    = SpindleSpeedOverride::Default;
 
     // Reset Grbl primary systems.
-    serial_reset_read_buffer(CLIENT_ALL);  // Clear serial read buffer
-    gc_init();                             // Set g-code parser to default state
+    client_reset_read_buffer(CLIENT_ALL);
+    gc_init();  // Set g-code parser to default state
     spindle->stop();
     coolant_init();
     limits_init();
@@ -105,6 +105,10 @@ static void reset_variables() {
     plan_sync_position();
     gc_sync_position();
     report_init_message(CLIENT_ALL);
+
+    // used to keep track of a jog command sent to mc_line() so we can cancel it.
+    // this is needed if a jogCancel comes along after we have already parsed a jog and it is in-flight.
+    sys_pl_data_inflight = NULL;
 }
 
 void run_once() {
@@ -118,6 +122,10 @@ void run_once() {
 void __attribute__((weak)) machine_init() {}
 
 void __attribute__((weak)) display_init() {}
+
+void __attribute__((weak)) user_m30() {}
+
+void __attribute__((weak)) user_tool_change(uint8_t new_tool) {}
 /*
   setup() and loop() in the Arduino .ino implements this control flow:
 

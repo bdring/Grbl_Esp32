@@ -119,7 +119,10 @@ float computeVertical(float firstUpper, float firstLower, float secondUpper, flo
 void takeMeasurement(float lengths[]);
 void printMeasurements(float lengths[]);
 void printPrecision(float precision);
-void printStall (double variable);
+void printStallTL (double variable);
+void printStallTR (double variable);
+void printStallBL (double variable);
+void printStallBR (double variable);
 
 
 
