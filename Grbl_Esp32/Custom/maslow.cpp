@@ -49,10 +49,10 @@ enabled with USE_ defines in Machines/my_machine.h
 
 TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
-MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, MOTOR_1_CS, printStall);
-MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, MOTOR_2_CS, printStall);
-MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, MOTOR_3_CS, printStall);
-MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, MOTOR_4_CS, printStall);
+MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, MOTOR_1_CS, printStallBR);
+MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, MOTOR_2_CS, printStallTR);
+MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, MOTOR_3_CS, printStallTL);
+MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, MOTOR_4_CS, printStallBL);
 
 //The xy coordinates of each of the anchor points
 float tlX;
@@ -173,7 +173,7 @@ float computeBL(float x, float y, float z){
 
 //Upper right belt
 float computeBR(float x, float y, float z){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = brX - x;
@@ -207,9 +207,9 @@ float computeTL(float x, float y, float z){
 void setTargets(float xTarget, float yTarget, float zTarget){
     
     if(!calibrationInProgress){
-        if(random(0,3000) == 5){
-            grbl_sendf(CLIENT_ALL, "Position errors: tl: %f, tr: %f, bl: %f, br: %f.\n", axisTL.getError(), axisTR.getError(), axisBL.getError(), axisBR.getError());
-        }
+        // if(random(0,3000) == 5){
+        //     grbl_sendf(CLIENT_ALL, "Position errors: tl: %f, tr: %f, bl: %f, br: %f.\n", axisTL.getError(), axisTR.getError(), axisBL.getError(), axisBR.getError());
+        // }
         axisBL.setTarget(computeBL(xTarget, yTarget, zTarget));
         axisBR.setTarget(computeBR(xTarget, yTarget, zTarget));
         axisTR.setTarget(computeTR(xTarget, yTarget, zTarget));
@@ -354,11 +354,24 @@ void printMeasurements(float lengths[]){
     grbl_sendf(CLIENT_ALL, "{bl:%f,   br:%f,   tr:%f,   tl:%f},\n", lengths[0], lengths[1], lengths[2], lengths[3]);
 }
 
-void printStall (double variable){
-    grbl_sendf(CLIENT_ALL, "Motor stalled at: %f\n", variable);
+void printStallTL (double variable){
+    grbl_sendf(CLIENT_ALL, "Top left motor stalled at: %f\n", variable);
+}
+
+void printStallTR (double variable){
+    grbl_sendf(CLIENT_ALL, "Top right motor stalled at: %f\n", variable);
+}
+
+void printStallBR (double variable){
+    grbl_sendf(CLIENT_ALL, "Bottom right motor stalled at: %f\n", variable);
+}
+
+void printStallBL (double variable){
+    grbl_sendf(CLIENT_ALL, "Bottom left motor stalled at: %f\n", variable);
 }
 
 void lowerBeltsGoSlack(){
+    grbl_sendf(CLIENT_ALL, "Lower belts going slack\n");
     unsigned long timeLastMoved1 = millis();
     unsigned long timeLastMoved2 = millis();
     double lastPosition1 = axisBL.angleSensor->getRotation();
@@ -368,8 +381,9 @@ void lowerBeltsGoSlack(){
     
     unsigned long startTime = millis();
     
-    while(millis()- startTime < 1200){
+    while(millis()- startTime < 1000){
         //Set the lower axis to be compliant. PID is recomputed in comply()
+        float distMoved = axisBL.getPosition() - lastPosition1;
         axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
         axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
         
@@ -383,7 +397,10 @@ void lowerBeltsGoSlack(){
         while(elapsedTime < 10){
             elapsedTime = millis()-time;
         }
+        
+        //grbl_sendf(CLIENT_ALL, "target: %f position: %f distMoved: %f option: %i\n", axisBL.getTarget(), axisBL.getPosition(), distMoved);
     }
+    grbl_sendf(CLIENT_ALL, "Going slack completed\n");
 }
 
 float printMeasurementMetrics(double avg, double m1, double m2, double m3, double m4, double m5){
@@ -406,6 +423,7 @@ float printMeasurementMetrics(double avg, double m1, double m2, double m3, doubl
 
 //Checks to make sure the deviation within the measurement avg looks good before moving on
 void takeMeasurementAvgWithCheck(float lengths[]){
+    grbl_sendf(CLIENT_ALL, "Beginning take measurement avg\n");
     float threshold = 0.25;
     while(true){
         float repeatability = takeMeasurementAvg(lengths);
@@ -455,18 +473,22 @@ float takeMeasurementAvg(float lengths[]){
 
 //Retract the lower belts until they pull tight and take a measurement
 void takeMeasurement(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "Taking measurement.\n");
+    grbl_sendf(CLIENT_ALL, "Taking a measurement.\n");
+
+    axisBL.stop();
+    axisBR.stop();
+
     bool axisBLDone = false;
     bool axisBRDone = false;
     
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        int currentThreshold = 14;
+        int currentThreshold = 6;
         
         if(axisBL.getCurrent() > currentThreshold || axisBLDone){
             axisBLDone = true;
-            //grbl_sendf(CLIENT_ALL, "Axis 1 declaring stopping");
+            grbl_sendf(CLIENT_ALL, "BL taught\n");
         }
         else{
             axisBL.setTarget(axisBL.getTarget() - .2);
@@ -474,7 +496,7 @@ void takeMeasurement(float lengths[]){
         
         if(axisBR.getCurrent() > currentThreshold || axisBRDone){
             axisBRDone = true;
-            //grbl_sendf(CLIENT_ALL, "Axis 2 declaring stopping");
+            grbl_sendf(CLIENT_ALL, "BR taught\n");
         }
         else{
             axisBR.setTarget(axisBR.getTarget() - .2);
@@ -504,7 +526,7 @@ void takeMeasurement(float lengths[]){
     lengths[2] = axisTR.getPosition()+beltEndExtension+armLength;
     lengths[3] = axisTL.getPosition()+beltEndExtension+armLength;
     
-    //grbl_sendf(CLIENT_ALL, "Measured:\n%f \n%f \n%f \n%f \n",lengths[0], lengths[1], lengths[2], lengths[3]);
+    grbl_sendf(CLIENT_ALL, "Measured:\n%f \n%f \n%f \n%f \n",lengths[0], lengths[1], lengths[2], lengths[3]);
     
     return;
 }
@@ -608,7 +630,7 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 
 #ifdef USE_CUSTOM_HOMING
 /*
-  user_defined_homing() is called at the begining of the normal Grbl_ESP32 homing
+  user_defined_homing() is called at the beginning of the normal Grbl_ESP32 homing
   sequence.  If user_defined_homing() returns false, the rest of normal Grbl_ESP32
   homing is skipped if it returns false, other normal homing continues.  For
   example, if you need to manually prep the machine for homing, you could implement
@@ -619,21 +641,18 @@ bool user_defined_homing(uint8_t cycle_mask)
   grbl_sendf(CLIENT_ALL, "Extending\n");
   
   if(cycle_mask == 1){  //Top left
-    grbl_sendf(CLIENT_ALL, "Encoder test %d\n", axisTL.testEncoder());
     axisTLHomed = axisTL.retract(computeTL(-200, 200, 0));
   }
   else if(cycle_mask == 2){  //Top right
     axisTR.testEncoder();
-    Serial.println("Top right recognized");
     axisTRHomed = axisTR.retract(computeTR(-200, 200, 0));
   }
   else if(cycle_mask == 4){ //Bottom right
-    axisBR.testEncoder();
     if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
         runCalibration();
     }
     else{
-        axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
+       axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
     }
   }
   else if(cycle_mask == 0){  //Bottom left
