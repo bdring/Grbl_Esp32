@@ -49,10 +49,10 @@ enabled with USE_ defines in Machines/my_machine.h
 
 TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
-MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, MOTOR_1_CS, printStallBR);
-MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, MOTOR_2_CS, printStallTR);
-MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, MOTOR_3_CS, printStallTL);
-MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, MOTOR_4_CS, printStallBL);
+MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, MOTOR_1_CS, grbl_sendf);
+MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, MOTOR_2_CS, grbl_sendf);
+MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, MOTOR_3_CS, grbl_sendf);
+MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, MOTOR_4_CS, grbl_sendf);
 
 //The xy coordinates of each of the anchor points
 float tlX;
@@ -381,7 +381,7 @@ void lowerBeltsGoSlack(){
     
     unsigned long startTime = millis();
     
-    while(millis()- startTime < 1000){
+    while(millis()- startTime < 2000){
         //Set the lower axis to be compliant. PID is recomputed in comply()
         float distMoved = axisBL.getPosition() - lastPosition1;
         axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
@@ -423,7 +423,7 @@ float printMeasurementMetrics(double avg, double m1, double m2, double m3, doubl
 
 //Checks to make sure the deviation within the measurement avg looks good before moving on
 void takeMeasurementAvgWithCheck(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "Beginning take measurement avg\n");
+    grbl_sendf(CLIENT_ALL, "Beginning takeMeasurementAvg\n");
     float threshold = 0.25;
     while(true){
         float repeatability = takeMeasurementAvg(lengths);
@@ -479,16 +479,15 @@ void takeMeasurement(float lengths[]){
     axisBR.stop();
 
     bool axisBLDone = false;
-    bool axisBRDone = false;
+    bool axisBRDone = true;
     
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        int currentThreshold = 6;
+        int currentThreshold = 8;
         
         if(axisBL.getCurrent() > currentThreshold || axisBLDone){
             axisBLDone = true;
-            grbl_sendf(CLIENT_ALL, "BL taught\n");
         }
         else{
             axisBL.setTarget(axisBL.getTarget() - .2);
@@ -496,7 +495,6 @@ void takeMeasurement(float lengths[]){
         
         if(axisBR.getCurrent() > currentThreshold || axisBRDone){
             axisBRDone = true;
-            grbl_sendf(CLIENT_ALL, "BR taught\n");
         }
         else{
             axisBR.setTarget(axisBR.getTarget() - .2);
@@ -526,7 +524,7 @@ void takeMeasurement(float lengths[]){
     lengths[2] = axisTR.getPosition()+beltEndExtension+armLength;
     lengths[3] = axisTL.getPosition()+beltEndExtension+armLength;
     
-    grbl_sendf(CLIENT_ALL, "Measured:\n%f \n%f \n%f \n%f \n",lengths[0], lengths[1], lengths[2], lengths[3]);
+    grbl_sendf(CLIENT_ALL, "Measured:\n%f, %f \n%f %f \n",lengths[3], lengths[2], lengths[0], lengths[1]);
     
     return;
 }
@@ -648,12 +646,12 @@ bool user_defined_homing(uint8_t cycle_mask)
     axisTRHomed = axisTR.retract(computeTR(-200, 200, 0));
   }
   else if(cycle_mask == 4){ //Bottom right
-    if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
+    // if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
         runCalibration();
-    }
-    else{
-       axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
-    }
+    // }
+    // else{
+    //    axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
+    // }
   }
   else if(cycle_mask == 0){  //Bottom left
     axisBL.testEncoder();
