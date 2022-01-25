@@ -372,22 +372,17 @@ void printStallBL (double variable){
 
 void lowerBeltsGoSlack(){
     grbl_sendf(CLIENT_ALL, "Lower belts going slack\n");
-    unsigned long timeLastMoved1 = millis();
-    unsigned long timeLastMoved2 = millis();
-    double lastPosition1 = axisBL.angleSensor->getRotation();
-    double lastPosition2 = axisBR.angleSensor->getRotation();
-    double amtToMove1 = 0.1;
-    double amtToMove2 = 0.1;
     
     unsigned long startTime = millis();
+
+    axisBL.setTarget(axisBL.getPosition() + 2);
+    axisBR.setTarget(axisBR.getPosition() + 2);
     
-    while(millis()- startTime < 2000){
-        //Set the lower axis to be compliant. PID is recomputed in comply()
-        float distMoved = axisBL.getPosition() - lastPosition1;
-        axisBL.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
-        axisBR.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
+    while(millis()- startTime < 600){
         
         //The other axis hold position
+        axisBL.recomputePID();
+        axisBR.recomputePID();
         axisTR.recomputePID();
         axisTL.recomputePID();
         
@@ -400,6 +395,22 @@ void lowerBeltsGoSlack(){
         
         //grbl_sendf(CLIENT_ALL, "target: %f position: %f distMoved: %f option: %i\n", axisBL.getTarget(), axisBL.getPosition(), distMoved);
     }
+
+    //Then stop them before moving on
+    startTime = millis();
+
+    axisBL.setTarget(axisBL.getPosition());
+    axisBR.setTarget(axisBR.getPosition());
+
+    while(millis()- startTime < 600){
+        
+        axisBL.recomputePID();
+        axisBR.recomputePID();
+        axisTR.recomputePID();
+        axisTL.recomputePID();
+
+    }
+
     grbl_sendf(CLIENT_ALL, "Going slack completed\n");
 }
 
@@ -479,7 +490,7 @@ void takeMeasurement(float lengths[]){
     axisBR.stop();
 
     bool axisBLDone = false;
-    bool axisBRDone = true;
+    bool axisBRDone = false;
     
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
@@ -646,12 +657,12 @@ bool user_defined_homing(uint8_t cycle_mask)
     axisTRHomed = axisTR.retract(computeTR(-200, 200, 0));
   }
   else if(cycle_mask == 4){ //Bottom right
-    // if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
+    if(axisBLHomed && axisBRHomed && axisTRHomed && axisTLHomed){
         runCalibration();
-    // }
-    // else{
-    //    axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
-    // }
+    }
+    else{
+       axisBRHomed = axisBR.retract(computeBR(-200, 300, 0));
+    }
   }
   else if(cycle_mask == 0){  //Bottom left
     axisBL.testEncoder();
