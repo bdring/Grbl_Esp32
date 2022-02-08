@@ -54,6 +54,20 @@ jobs:
           cat yaml/convert-job.yaml >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
+      - name: Report errors
+        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae
+        if: ${{ job.status == 'failed' }}
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Dear ${{ github.event.issue.user.login }},
+            The attempt to convert your machine header-file ${{ env.file_path }} into a FluidNc yaml file
+            failed due to one of the following possibilities:
+              1. Your machine file had an error.  This can happen if you use an old machine file that
+                 will not compile with the latest version of Grbl_Esp32
+              2. There is a bug in the converter program.
+            If you cannot resolve the problem, please contact us on Discord - https://discord.gg/MDsRDeNsTE
+
       - name: Add comment
         uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae
         with:
