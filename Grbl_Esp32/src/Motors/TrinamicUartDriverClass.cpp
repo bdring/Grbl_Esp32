@@ -71,6 +71,7 @@ namespace Motors {
         init_step_dir_pins();  // from StandardStepper
         config_message();
 
+#ifndef NATIVE
         tmcstepper->begin();
 
         _has_errors = !test();  // Try communicating with motor. Prints an error if there is a problem.
@@ -96,6 +97,7 @@ namespace Motors {
                                                        // core
             );
         }
+#endif
     }
 
     /*
