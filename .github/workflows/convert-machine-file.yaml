@@ -55,7 +55,7 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Report errors
-        if: failed()
+        if: failure()
         uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae
         with:
           issue-number: ${{ github.event.issue.number }}
