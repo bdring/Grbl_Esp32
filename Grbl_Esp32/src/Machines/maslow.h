@@ -77,27 +77,25 @@
 #define TLC_DATA   16
 #define TLC_CLOCK  21
 
-#define MOTOR_1_ADC ADC1_GPIO33_CHANNEL
-#define MOTOR_1_FORWARD 1
-#define MOTOR_1_BACKWARD 0
-#define MOTOR_1_CS 17
+#define BR_ADC ADC1_GPIO33_CHANNEL
+#define BR_FORWARD 1
+#define BR_BACKWARD 0
+#define BR_CS 17
 
-#define MOTOR_2_ADC ADC1_GPIO32_CHANNEL
-#define MOTOR_2_FORWARD 3
-#define MOTOR_2_BACKWARD 2
-#define MOTOR_2_CS 02
+#define TR_ADC ADC1_GPIO32_CHANNEL
+#define TR_FORWARD 3
+#define TR_BACKWARD 2
+#define TR_CS 02
 
-//Motor 4 on PCB
-#define MOTOR_3_ADC ADC1_GPIO35_CHANNEL
-#define MOTOR_3_FORWARD 7
-#define MOTOR_3_BACKWARD 6
-#define MOTOR_3_CS 26
+#define TL_ADC ADC1_GPIO35_CHANNEL
+#define TL_FORWARD 7
+#define TL_BACKWARD 6
+#define TL_CS 26
 
-//Motor 5 on PCB
-#define MOTOR_4_ADC ADC1_GPIO34_CHANNEL
-#define MOTOR_4_FORWARD 9
-#define MOTOR_4_BACKWARD 8
-#define MOTOR_4_CS 25
+#define BL_ADC ADC1_GPIO34_CHANNEL
+#define BL_FORWARD 9
+#define BL_BACKWARD 8
+#define BL_CS 25
 
 #define DC_TOP_LEFT_MM_PER_REV 44
 #define DC_Z_AXIS_MM_PER_REV 1
@@ -119,10 +117,7 @@ float computeVertical(float firstUpper, float firstLower, float secondUpper, flo
 void takeMeasurement(float lengths[]);
 void printMeasurements(float lengths[]);
 void printPrecision(float precision);
-void printStallTL (double variable);
-void printStallTR (double variable);
-void printStallBL (double variable);
-void printStallBR (double variable);
+void takeUpInternalSlack();
 
 
 

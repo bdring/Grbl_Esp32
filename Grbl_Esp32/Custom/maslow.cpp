@@ -49,10 +49,10 @@ enabled with USE_ defines in Machines/my_machine.h
 
 TLC59711 tlc(NUM_TLC59711, TLC_CLOCK, TLC_DATA);
 
-MotorUnit axisBR(&tlc, MOTOR_1_FORWARD, MOTOR_1_BACKWARD, MOTOR_1_ADC, MOTOR_1_CS, grbl_sendf);
-MotorUnit axisTR(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, MOTOR_2_CS, grbl_sendf);
-MotorUnit axisTL(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, MOTOR_3_CS, grbl_sendf);
-MotorUnit axisBL(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, MOTOR_4_CS, grbl_sendf);
+MotorUnit axisBR(&tlc, BR_FORWARD, BR_BACKWARD, BR_ADC, BR_CS, grbl_sendf);
+MotorUnit axisTR(&tlc, TR_FORWARD, TR_BACKWARD, TR_ADC, TR_CS, grbl_sendf);
+MotorUnit axisTL(&tlc, TL_FORWARD, TL_BACKWARD, TL_ADC, TL_CS, grbl_sendf);
+MotorUnit axisBL(&tlc, BL_FORWARD, BL_BACKWARD, BL_ADC, BL_CS, grbl_sendf);
 
 //The xy coordinates of each of the anchor points
 float tlX;
@@ -104,19 +104,19 @@ void machine_init()
     axisBRHomed = false;
     axisTRHomed = false;
     axisTLHomed = false;
-    
+
     tlX = -8.339;
     tlY = 1828.17;
-    tlZ = 96;
+    tlZ = 172;
     trX = 2870.62;
     trY = 1829.05;
-    trZ = 131;
+    trZ = 111;
     blX = 0;
     blY = 0;
-    blZ = 111;
+    blZ = 96;
     brX = 2891.36;
     brY = 0;
-    brZ = 172;
+    brZ = 131;
     
     //Recompute the center XY
     updateCenterXY();
@@ -162,7 +162,7 @@ void updateCenterXY(){
 
 //Upper left belt
 float computeBL(float x, float y, float z){
-    //Move from lower left corner cordinates to centered cordinates
+    //Move from lower left corner coordinates to centered coordinates
     x = x + centerX;
     y = y + centerY;
     float a = blX - x;
@@ -354,22 +354,6 @@ void printMeasurements(float lengths[]){
     grbl_sendf(CLIENT_ALL, "{bl:%f,   br:%f,   tr:%f,   tl:%f},\n", lengths[0], lengths[1], lengths[2], lengths[3]);
 }
 
-void printStallTL (double variable){
-    grbl_sendf(CLIENT_ALL, "Top left motor stalled at: %f\n", variable);
-}
-
-void printStallTR (double variable){
-    grbl_sendf(CLIENT_ALL, "Top right motor stalled at: %f\n", variable);
-}
-
-void printStallBR (double variable){
-    grbl_sendf(CLIENT_ALL, "Bottom right motor stalled at: %f\n", variable);
-}
-
-void printStallBL (double variable){
-    grbl_sendf(CLIENT_ALL, "Bottom left motor stalled at: %f\n", variable);
-}
-
 void lowerBeltsGoSlack(){
     grbl_sendf(CLIENT_ALL, "Lower belts going slack\n");
     
@@ -411,31 +395,36 @@ void lowerBeltsGoSlack(){
 
     }
 
-    grbl_sendf(CLIENT_ALL, "Going slack completed\n");
+    //grbl_sendf(CLIENT_ALL, "Going slack completed\n");
 }
 
 float printMeasurementMetrics(double avg, double m1, double m2, double m3, double m4, double m5){
     
+    //grbl_sendf(CLIENT_ALL, "Avg: %f m1: %f, m2: %f, m3: %f, m4: %f, m5: %f\n", avg, m1, m2, m3, m4, m5);
     
     double m1Variation = myAbs(avg - m1);
-    double m2Variation = myAbs(avg - m1);
-    double m3Variation = myAbs(avg - m1);
-    double m4Variation = myAbs(avg - m1);
-    double m5Variation = myAbs(avg - m1);
+    double m2Variation = myAbs(avg - m2);
+    double m3Variation = myAbs(avg - m3);
+    double m4Variation = myAbs(avg - m4);
+    double m5Variation = myAbs(avg - m5);
+
+    //grbl_sendf(CLIENT_ALL, "m1Variation: %f m2Variation: %f, m3Variation: %f, m4Variation: %f, m5Variation: %f\n", m1Variation, m2Variation, m3Variation, m4Variation, m5Variation);
     
     double maxDeviation = max(max(max(m1Variation, m2Variation), max(m3Variation, m4Variation)), m5Variation);
     
-    double avgDeviation = (m1Variation + m2Variation + m3Variation + m4Variation + m5Variation)/5.0;
-    
-    grbl_sendf(CLIENT_ALL, "Max deviation: %f, Avg deviation: %f\n", maxDeviation, avgDeviation);
+    grbl_sendf(CLIENT_ALL, "Max deviation: %f\n", maxDeviation);
 
-    return avgDeviation;
+    //double avgDeviation = (m1Variation + m2Variation + m3Variation + m4Variation + m5Variation)/5.0;
+    
+    //grbl_sendf(CLIENT_ALL, "Avg deviation: %f\n", avgDeviation);
+
+    return maxDeviation;
 }
 
 //Checks to make sure the deviation within the measurement avg looks good before moving on
 void takeMeasurementAvgWithCheck(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "Beginning takeMeasurementAvg\n");
-    float threshold = 0.25;
+    //grbl_sendf(CLIENT_ALL, "Beginning takeMeasurementAvg\n");
+    float threshold = 0.9;
     while(true){
         float repeatability = takeMeasurementAvg(lengths);
         if(repeatability < threshold){
@@ -446,9 +435,9 @@ void takeMeasurementAvgWithCheck(float lengths[]){
     }
 }
 
-//Takes 5 measurements and computes the average of them
-float takeMeasurementAvg(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "Beginning to take averaged measurement.\n");
+//Takes 5 measurements and return how consistent they are
+float takeMeasurementAvg(float avgLengths[]){
+    //grbl_sendf(CLIENT_ALL, "Beginning to take averaged measurement.\n");
     
     //Where our five measurements will be stored
     float lengths1[4];
@@ -469,22 +458,26 @@ float takeMeasurementAvg(float lengths[]){
     lowerBeltsGoSlack();
     takeMeasurement(lengths5);
     
-    lengths[0] = (lengths1[0]+lengths2[0]+lengths3[0]+lengths4[0]+lengths5[0])/5.0;
-    lengths[1] = (lengths1[1]+lengths2[1]+lengths3[1]+lengths4[1]+lengths5[1])/5.0;
-    lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
-    lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
+    avgLengths[0] = (lengths1[0]+lengths2[0]+lengths3[0]+lengths4[0]+lengths5[0])/5.0;
+    avgLengths[1] = (lengths1[1]+lengths2[1]+lengths3[1]+lengths4[1]+lengths5[1])/5.0;
+    avgLengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
+    avgLengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
     
-    float m1 = printMeasurementMetrics(lengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
-    float m2 = printMeasurementMetrics(lengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
-    float m3 = printMeasurementMetrics(lengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
-    float m4 = printMeasurementMetrics(lengths[3], lengths1[3], lengths2[3], lengths3[3], lengths4[3], lengths5[3]);
+    float m1 = printMeasurementMetrics(avgLengths[0], lengths1[0], lengths2[0], lengths3[0], lengths4[0], lengths5[0]);
+    float m2 = printMeasurementMetrics(avgLengths[1], lengths1[1], lengths2[1], lengths3[1], lengths4[1], lengths5[1]);
+    float m3 = printMeasurementMetrics(avgLengths[2], lengths1[2], lengths2[2], lengths3[2], lengths4[2], lengths5[2]);
+    float m4 = printMeasurementMetrics(avgLengths[3], lengths1[3], lengths2[3], lengths3[3], lengths4[3], lengths5[3]);
 
-    return (m1+m2+m3+m4)/4.0;
+    float avgMaxDeviation = (m1+m2+m3+m4)/4.0;
+    
+    grbl_sendf(CLIENT_ALL, "Average Max Deviation: %f\n", avgMaxDeviation);
+
+    return avgMaxDeviation;
 }
 
 //Retract the lower belts until they pull tight and take a measurement
 void takeMeasurement(float lengths[]){
-    grbl_sendf(CLIENT_ALL, "Taking a measurement.\n");
+    //grbl_sendf(CLIENT_ALL, "Taking a measurement.\n");
 
     axisBL.stop();
     axisBR.stop();
@@ -495,20 +488,24 @@ void takeMeasurement(float lengths[]){
     while(!axisBLDone || !axisBRDone){  //As long as one axis is still pulling
         
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        int currentThreshold = 8;
+        int currentThreshold = 2;
         
         if(axisBL.getCurrent() > currentThreshold || axisBLDone){
             axisBLDone = true;
         }
-        else{
-            axisBL.setTarget(axisBL.getTarget() - .2);
+        else{  //Here we want if(axisBL.getTarget() - axisBL.getPosition() < .4)
+            if(axisBL.getPosition() - axisBL.getTarget() < 0.6){
+                axisBL.setTarget(axisBL.getTarget() - .2);
+            }
         }
         
         if(axisBR.getCurrent() > currentThreshold || axisBRDone){
             axisBRDone = true;
         }
         else{
-            axisBR.setTarget(axisBR.getTarget() - .2);
+            if(axisBR.getPosition() - axisBR.getTarget() < 1){
+                axisBR.setTarget(axisBR.getTarget() - .2);
+            }
         }
         
         // Delay without blocking
@@ -596,7 +593,7 @@ void moveWithSlack(float x, float y){
         }
     }
     
-    grbl_sendf(CLIENT_ALL, "Positional errors at the end of move <-%f, %f ->\n", axisTL.getError(), axisTR.getError());
+    //grbl_sendf(CLIENT_ALL, "Positional errors at the end of move <-%f, %f ->\n", axisTL.getError(), axisTR.getError());
     
     axisBL.setTarget(axisBL.getPosition());
     axisBR.setTarget(axisBR.getPosition());
@@ -608,9 +605,47 @@ void moveWithSlack(float x, float y){
     axisTR.stop();
     axisTL.stop();
     
-    //Take a measurement to pull things taught
-    float lengths1[4];
-    takeMeasurementAvg(lengths1);
+    //Take up the internal slack to remove any slop between the spool and roller
+    takeUpInternalSlack();
+}
+
+//This function removes any slack in the belt between the spool and the roller. 
+//If there is slack there then when the motor turns the belt won't move which triggers the
+//current threshold on pull tight too early. It only does this for the bottom axis.
+void takeUpInternalSlack(){
+    //Set the target to be .5mm in
+    axisBL.setTarget(axisBL.getPosition() - 0.5);
+    axisBR.setTarget(axisBR.getPosition() - 0.5);
+
+    //Setup flags
+    bool blDone = false;
+    bool brDone = false;
+
+    //Position hold until both axis are able to pull in until 
+    while(!blDone && !brDone){
+
+        //Check if they have pulled in fully
+        if(axisBL.getPosition() < axisBL.getTarget()){
+            blDone = true;
+        }
+        if(axisBR.getPosition() < axisBR.getTarget()){
+            brDone = true;
+        }
+
+        recomputePID();
+
+        // Delay without blocking
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 10){
+            elapsedTime = millis()-time;
+        }
+    }
+
+    axisBL.stop();
+    axisBR.stop();
+    axisTR.stop();
+    axisTL.stop();
 }
 
 float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower){
