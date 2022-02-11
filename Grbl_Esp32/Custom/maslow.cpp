@@ -428,7 +428,7 @@ void takeMeasurementAvgWithCheck(float lengths[]){
     while(true){
         float repeatability = takeMeasurementAvg(lengths);
         if(repeatability < threshold){
-            grbl_sendf(CLIENT_ALL, "Using measurement with precision %f", repeatability);
+            grbl_sendf(CLIENT_ALL, "Using measurement with precision %f\n", repeatability);
             break;
         }
         grbl_sendf(CLIENT_ALL, "Repeating measurement\n");
@@ -494,7 +494,7 @@ void takeMeasurement(float lengths[]){
             axisBLDone = true;
         }
         else{  //Here we want if(axisBL.getTarget() - axisBL.getPosition() < .4)
-            if(axisBL.getPosition() - axisBL.getTarget() < 0.6){
+            if(axisBL.getPosition() - axisBL.getTarget() < 1){
                 axisBL.setTarget(axisBL.getTarget() - .2);
             }
         }
