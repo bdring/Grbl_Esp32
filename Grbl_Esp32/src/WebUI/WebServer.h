@@ -94,6 +94,10 @@ namespace WebUI {
         static void SDFile_direct_upload();
         static bool deleteRecursive(String path);
 #endif
+        static bool handleSD(String path);
+        static bool handleLocalFS(String path);
+        static bool handleCaptivePortal();
+        static void sendEmbeddedPage(String page);
     };
 
     extern Web_Server web_server;
