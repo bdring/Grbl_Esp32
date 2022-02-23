@@ -274,6 +274,28 @@ const char* trinamicModes(TrinamicMode mode) {
     }
     return ret;
 }
+bool is_spi_trinamic(const char* name) {
+    return !strcasecmp(name, "tmc_2130") || !strcasecmp(name, "tmc_5160");
+}
+bool trinamic_is_daisy_chained = false;
+void check_for_trinamic_daisy_chain() {
+    int n_spi_trinamics        = 0;
+    int n_spi_trinamic_cs_pins = 0;
+    int n_axis                 = number_axis->get();
+
+    for (int axis = 0; axis < n_axis; axis++) {
+        for (int gang = 0; gang < 2; gang++) {
+            Motor* m = myMotor[axis][gang];
+            if (is_spi_trinamic(m->name())) {
+                n_spi_trinamics++;
+                if (static_cast<TrinamicDriver*>(m)->_cs_pin != UNDEFINED_PIN) {
+                    n_spi_trinamic_cs_pins++;
+                }
+            }
+        }
+    }
+    trinamic_is_daisy_chained = n_spi_trinamics > 1 && n_spi_trinamic_cs_pins == 1;
+}
 void print_trinamic_common(int axis, int gang, TrinamicMode run, TrinamicMode homing) {
     item("run_amps", axis_settings[axis]->run_current->get());
     item("hold_amps", axis_settings[axis]->hold_current->get());
@@ -297,7 +319,9 @@ void print_trinamic_spi(TrinamicDriver* m, int axis, int gang, const char* name 
     print_trinamic_common(axis, gang, TRINAMIC_RUN_MODE, TRINAMIC_HOMING_MODE);
     item("r_sense_ohms", m->_r_sense);
     pin_item("cs_pin", m->_cs_pin, true);
-    item("spi_index", spi_index++);
+    if (trinamic_is_daisy_chained) {
+        item("spi_index", spi_index++);
+    }
     end_section();
 }
 int  tmc_addr = 0;
@@ -344,7 +368,7 @@ void print_motor_class(int axis, int gang) {
         print_unipolar(static_cast<UnipolarMotor*>(m), axis, gang, name);
         return;
     }
-    if (!strcasecmp(name, "tmc_2130") || !strcasecmp(name, "tmc_5160")) {
+    if (is_spi_trinamic(name)) {
         print_trinamic_spi(static_cast<TrinamicDriver*>(m), axis, gang, name);
         return;
     }
@@ -353,11 +377,13 @@ void print_motor_class(int axis, int gang) {
         return;
     }
 }
+
 const char* axis_names[] = { "x", "y", "z", "a", "b", "c" };
 void        print_axes() {
     section("axes");
     int n_axis = number_axis->get();
     pin_item("shared_stepper_disable_pin", STEPPERS_DISABLE_PIN);
+    check_for_trinamic_daisy_chain();
     for (int axis = 0; axis < n_axis; axis++) {
         section(axis_names[axis]);
         print_steps(axis);
@@ -567,42 +593,46 @@ const char* makeSpeedMap(PWM* s) {
     }
     return temp;
 }
-void print_spindle(const char* name, Spindle* s) {
+void print_spindle(const char* name, Spindle* s, bool delay) {
     section(name);
-    item("spinup_ms", s->_spinup_delay);
-    item("spindown_ms", s->_spindown_delay);
     item("tool_num", int(0));
-    item("speeds", makeSpeedMap(static_cast<PWM*>(s)));
+    item("speed_map", makeSpeedMap(static_cast<PWM*>(s)));
+    if (delay) {
+        item("spinup_ms", s->_spinup_delay);
+        item("spindown_ms", s->_spindown_delay);
+    }
 }
-void print_onoff_spindle(const char* name, PWM* s) {
-    print_spindle(name, s);
+void print_onoff_spindle(const char* name, PWM* s, bool delay) {
+    print_spindle(name, s, delay);
     pin_item("output_pin", s->_output_pin, s->_invert_pwm, false);
     pin_item("enable_pin", s->_enable_pin);
     pin_item("direction_pin", s->_direction_pin);
     item("disable_with_s0", bool(s->_off_with_zero_speed));
     item("s0_with_disable", false);
 }
-void print_pwm_spindle(const char* name, PWM* s) {
-    print_onoff_spindle(name, s);
+void print_pwm_spindle(const char* name, PWM* s, bool delay) {
+    print_onoff_spindle(name, s, delay);
     item("pwm_hz", s->_pwm_freq);
 }
 void print_relay_spindle(Relay* s) {
-    print_onoff_spindle("relay", s);
+    print_onoff_spindle("relay", s, true);
+    item("spinup_ms", s->_spinup_delay);
+    item("spindown_ms", s->_spindown_delay);
     end_section();
 }
 
 void print_laser_spindle(Laser* s) {
-    print_pwm_spindle("laser", s);
+    print_pwm_spindle("laser", s, false);
     end_section();
 }
 
 void print_dac_spindle(Dac* s) {
-    print_onoff_spindle("dac", s);
+    print_onoff_spindle("dac", s, true);
     end_section();
 }
 void print_besc_spindle(BESC* s) {
     s->_pwm_freq = BESC_PWM_FREQ;  // Override in parent class
-    print_pwm_spindle("besc", s);
+    print_pwm_spindle("besc", s, true);
     item("min_pulse_us", int(BESC_MIN_PULSE_SECS * 1000000));
     item("max_pulse_us", int(BESC_MAX_PULSE_SECS * 1000000));
 
@@ -610,7 +640,9 @@ void print_besc_spindle(BESC* s) {
 }
 
 void print_10v_spindle(_10v* s) {
-    print_pwm_spindle("10v", s);
+    print_pwm_spindle("10v", s, true);
+    item("spinup_ms", s->_spinup_delay);
+    item("spindown_ms", s->_spindown_delay);
 #ifdef SPINDLE_FORWARD_PIN
     pin_item("forward_pin", SPINDLE_FORWARD_PIN);
 #endif
@@ -620,8 +652,8 @@ void print_10v_spindle(_10v* s) {
     end_section();
 }
 
-void print_vfd_spindle(const char* name, VFD* s) {
-    print_spindle(name, s);
+void print_vfd_spindle(const char* name, VFD* s, bool delay) {
+    print_spindle(name, s, delay);
     print_uart(VFD_RS485_UART_PORT,
 #ifdef VFD_RS485_TXD_PIN
                VFD_RS485_TXD_PIN
@@ -667,17 +699,17 @@ void print_vfd_spindle(const char* name, VFD* s) {
 }
 
 void print_huanyang_spindle(Huanyang* s) {
-    print_vfd_spindle("huanyang", s);
+    print_vfd_spindle("huanyang", s, false);
     end_section();
 }
 
 void print_h2a_spindle(H2A* s) {
-    print_vfd_spindle("h2a", s);
+    print_vfd_spindle("h2a", s, false);
     end_section();
 }
 
 void print_yl620_spindle(YL620* s) {
-    print_vfd_spindle("yl620", s);
+    print_vfd_spindle("yl620", s, false);
     end_section();
 }
 
@@ -687,7 +719,7 @@ void print_spindle_class() {
         case int8_t(SpindleType::NONE):
             break;
         case int8_t(SpindleType::PWM):
-            print_pwm_spindle("PWM", static_cast<PWM*>(s));
+            print_pwm_spindle("PWM", static_cast<PWM*>(s), true);
             end_section();
             break;
         case int8_t(SpindleType::RELAY):
