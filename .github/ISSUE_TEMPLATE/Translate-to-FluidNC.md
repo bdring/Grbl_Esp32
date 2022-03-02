@@ -1,4 +1,4 @@
-e---
+---
 name: Translate Machine.h File to FluidNC
 about: Use this template to translate a Grbl_Esp32 Machine.h to FluidNC YAML format.
 title: 'Translate Machine.h for YOUR NAME'
