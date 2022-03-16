@@ -13,3 +13,4 @@ Change YOUR NAME in the title to some string that identifies your machine config
 
 Attach your machine definition file here - but first change the .h extension to .txt because GitHub will not allow you to attach a file with a .h extension.  Submit the issue, and after a few minutes, a new comment will appear with the FluidNC YAML file.
 
+**Attach** the file - do not paste the file text into the issue.  If you paste, the converter will not work.
