@@ -118,9 +118,6 @@ void print_steps(int axis) {
     item("soft_limits", tf(soft_limits->get()));
 }
 void print_homing(int axis) {
-    if (!homing_enable->get()) {
-        return;
-    }
     int cycle;
     for (cycle = 0; cycle < MAX_N_AXIS; cycle++) {
         if (bitnum_istrue(homing_cycle[cycle]->get(), axis)) {
@@ -255,9 +252,6 @@ void print_stepstick(StandardStepper* m, int axis, int gang, const char* name) {
     }
     pin_item("ms3_pin", ms3_pin);
 
-#ifdef STEPPER_RESET
-    pin_item("reset_pin", STEPPER_RESET);
-#endif
     end_section();
 }
 const char* trinamicModes(TrinamicMode mode) {
@@ -383,11 +377,22 @@ void        print_axes() {
     section("axes");
     int n_axis = number_axis->get();
     pin_item("shared_stepper_disable_pin", STEPPERS_DISABLE_PIN);
+#ifdef STEPPER_RESET
+    pin_item("shared_stepper_reset_pin", STEPPER_RESET);
+#endif
+
+    bool homing = homing_enable->get();
+#ifdef HOMING_INIT_LOCK
+    homing = true;
+#endif
+
     check_for_trinamic_daisy_chain();
     for (int axis = 0; axis < n_axis; axis++) {
         section(axis_names[axis]);
         print_steps(axis);
-        print_homing(axis);
+        if (homing) {
+            print_homing(axis);
+        }
         for (int gang = 0; gang < 2; gang++) {
             section(gang ? "motor1" : "motor0");
             print_endstops(axis, gang);
