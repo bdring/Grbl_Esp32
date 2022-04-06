@@ -273,22 +273,28 @@ bool is_spi_trinamic(const char* name) {
 }
 bool trinamic_is_daisy_chained = false;
 void check_for_trinamic_daisy_chain() {
-    int n_spi_trinamics        = 0;
-    int n_spi_trinamic_cs_pins = 0;
-    int n_axis                 = number_axis->get();
+    int  n_spi_trinamics  = 0;
+    bool multiple_cs_pins = false;
+    int  n_axis           = number_axis->get();
+
+    uint8_t last_cs_pin = UNDEFINED_PIN;
 
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang = 0; gang < 2; gang++) {
             Motor* m = myMotor[axis][gang];
             if (is_spi_trinamic(m->name())) {
                 n_spi_trinamics++;
-                if (static_cast<TrinamicDriver*>(m)->_cs_pin != UNDEFINED_PIN) {
-                    n_spi_trinamic_cs_pins++;
+                uint8_t this_cs_pin = static_cast<TrinamicDriver*>(m)->_cs_pin;
+                if (this_cs_pin != UNDEFINED_PIN) {
+                    if (last_cs_pin != UNDEFINED_PIN && this_cs_pin != last_cs_pin) {
+                        multiple_cs_pins = true;
+                    }
+                    last_cs_pin = this_cs_pin;
                 }
             }
         }
     }
-    trinamic_is_daisy_chained = n_spi_trinamics > 1 && n_spi_trinamic_cs_pins == 1;
+    trinamic_is_daisy_chained = n_spi_trinamics > 1 && multiple_cs_pins == false;
 }
 void print_trinamic_common(int axis, int gang, TrinamicMode run, TrinamicMode homing) {
     item("run_amps", axis_settings[axis]->run_current->get());
@@ -312,9 +318,13 @@ void print_trinamic_spi(TrinamicDriver* m, int axis, int gang, const char* name 
     print_stepper(m, axis, gang, name);
     print_trinamic_common(axis, gang, TRINAMIC_RUN_MODE, TRINAMIC_HOMING_MODE);
     item("r_sense_ohms", m->_r_sense);
-    pin_item("cs_pin", m->_cs_pin, true);
     if (trinamic_is_daisy_chained) {
+        if (spi_index == 0) {
+            pin_item("cs_pin", m->_cs_pin, true);
+        }
         item("spi_index", spi_index++);
+    } else {
+        pin_item("cs_pin", m->_cs_pin, true);
     }
     end_section();
 }
