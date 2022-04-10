@@ -313,6 +313,7 @@ void print_trinamic_common(int axis, int gang, TrinamicMode run, TrinamicMode ho
     item("use_enable", tf(false));
 #endif
 }
+// The first valid spi_index is 1; 0 means not yet assigned
 int  spi_index = 0;
 void print_trinamic_spi(TrinamicDriver* m, int axis, int gang, const char* name = "trinamic_spi") {
     print_stepper(m, axis, gang, name);
@@ -322,7 +323,7 @@ void print_trinamic_spi(TrinamicDriver* m, int axis, int gang, const char* name 
         if (spi_index == 0) {
             pin_item("cs_pin", m->_cs_pin, true);
         }
-        item("spi_index", spi_index++);
+        item("spi_index", ++spi_index);
     } else {
         pin_item("cs_pin", m->_cs_pin, true);
     }
