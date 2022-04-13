@@ -44,8 +44,7 @@
 	determined and applied to the feed rate.
 
 	TODO:
-		Add y offset, for completeness
-		Add ZERO_NON_HOMED_AXES option
+		Finish inverse kinematics.
 
 
 */
@@ -54,8 +53,17 @@
 // in Machines/scara.h, thus causing this file to be included
 // from ../custom_code.cpp
 
-void  scara_calcInverse(float* target_xyz, float* angle, float last_angle);
-float abs_angle(float ang);
+#include "src/Machines/scara.h"
+
+enum class KinematicError : uint8_t {
+    NONE               = 0,
+    OUT_OF_RANGE       = 1,
+    ANGLE_TOO_NEGATIVE = 2,
+    ANGLE_TOO_POSITIVE = 3,
+};
+
+KinematicError scara_calcInverse(float* target_xyz, float* angle, float* last_angle);
+float          abs_angle(float ang);
 
 static float last_angle[2]  = {0, 0};
 
@@ -113,7 +121,7 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
     for (uint32_t segment = 1; segment <= segment_count; segment++) {
         // determine this segment's target
         seg_target[X_AXIS] = position[X_AXIS] + (dx / float(segment_count) * segment) - x_offset;
-        seg_target[Y_AXIS] = position[Y_AXIS] + (dy / float(segment_count) * segment);
+        seg_target[Y_AXIS] = position[Y_AXIS] + (dy / float(segment_count) * segment) - y_offset;
         seg_target[Z_AXIS] = position[Z_AXIS] + (dz / float(segment_count) * segment) - z_offset;
         scara_calcInverse(seg_target, angle, last_angle);
         // begin determining new feed rate
@@ -168,10 +176,10 @@ converted = position with forward kinematics applied.
 
 */
 void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
-    float angle_r1 = radians(motors[X_AXIS]);
-    float angle_r2 = radians(motors[Y_AXIS]);
-    cartesian[X_AXIS] = LENGTH_R1 * cos(angle_r1) + LENGTH_R2 * cos(angle_r1 + angle_r2);
-    cartesian[Y_AXIS] = LENGTH_R1 * sin(angle_r1) + LENGTH_R2 * sin(angle_r1 + angle_r2);
+    float theta_r1 = radians(motors[X_AXIS]);
+    float theta_r2 = radians(motors[Y_AXIS]);
+    cartesian[X_AXIS] = LENGTH_R1 * cos(theta_r1) + LENGTH_R2 * cos(theta_r1 + theta_r2);
+    cartesian[Y_AXIS] = LENGTH_R1 * sin(theta_r1) + LENGTH_R2 * sin(theta_r1 + theta_r2);
     cartesian[Z_AXIS] = motors[Z_AXIS];  // unchanged
 }
 
@@ -190,36 +198,36 @@ void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
 *   a long job.
 *
 */
-void scara_calcInverse(float* target_xyz, float* angle, float* last_angle) {
+KinematicError scara_calcInverse(float* target_xyz, float* joint, float* last_angle) {
     float delta_ang;  // the difference from the last and next angle
     float x   = target_xyz[X_AXIS];
     float y   = target_xyz[Y_AXIS];
     float r2  = x * x + y * y;
-    float r   = sqrtf(r2);
+    float r   = sqrt(r2);
     float cos = (r2 - LENGTH_R1 * LENGTH_R1 - LENGTH_R2 * LENGTH_R2) / (2 * LENGTH_R1 * LENGTH_R2);
-    float sin1 = sqrtf(1 - cos * cos);
-    float sin2 = -sqrtf(1 - cos * cos);
+    float sin1 = sqrt(1 - cos * cos);
+    float sin2 = -sqrt(1 - cos * cos);
     float sin;
 
     if (r == 0) {
-        angle[R1_AXIS] = last_angle[0];  // don't care about R1 at center
+        joint[R1_AXIS] = last_angle[R1_AXIS];  // don't care about R1 at center
     } else {
-        angle[R1_AXIS] = atan2f(y,x) - atan2f(LENGTH_R2 * sin, LENGTH_R1 + LENGTH_R2 * cos);
-        polar[POLAR_AXIS] = atan2(target_xyz[Y_AXIS], target_xyz[X_AXIS]) * 180.0 / M_PI;
+        joint[R1_AXIS] = atan2(y,x) - atan2(LENGTH_R2 * sin, LENGTH_R1 + LENGTH_R2 * cos);
+        joint[R2_AXIS] = atan2(target_xyz[Y_AXIS], target_xyz[X_AXIS]) * 180.0 / M_PI;
         // no negative angles...we want the absolute angle not -90, use 270
-        polar[POLAR_AXIS] = abs_angle(polar[POLAR_AXIS]);
+        joint[R1_AXIS] = abs_angle(angle[R1_AXIS]);
     }
-    polar[Z_AXIS] = target_xyz[Z_AXIS];  // Z is unchanged
-    delta_ang     = polar[POLAR_AXIS] - abs_angle(last_angle);
+    angle[Z_AXIS] = target_xyz[Z_AXIS];  // Z is unchanged
+    delta_ang     = angle[R1_AXIS] - abs_angle(last_angle[0]);
     // if the delta is above 180 degrees it means we are crossing the 0 degree line
     if (fabs(delta_ang) <= 180.0)
-        polar[POLAR_AXIS] = last_angle + delta_ang;
+        angle[R1_AXIS] = last_angle[0] + delta_ang;
     else {
         if (delta_ang > 0.0) {
             // crossing zero counter clockwise
-            polar[POLAR_AXIS] = last_angle - (360.0 - delta_ang);
+            angle[R1_AXIS] = last_angle[0] - (360.0 - delta_ang);
         } else
-            polar[POLAR_AXIS] = last_angle + delta_ang + 360.0;
+            angle[R2_AXIS] = last_angle[0] + delta_ang + 360.0;
     }
 }
 
