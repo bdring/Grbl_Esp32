@@ -32,6 +32,12 @@
 #define CUSTOM_CODE_FILENAME "Custom/scara.cpp"
 
 #define SPINDLE_TYPE SpindleType::NONE
+// ================== SCARA Geometry ===========================
+
+#define LENGTH_R1   90
+#define LENGTH_R2   90
+
+// ============ Machine Hardware Definition ====================
 
 #define R1_AXIS 0
 #define R2_AXIS 1

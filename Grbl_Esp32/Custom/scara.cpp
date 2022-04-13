@@ -1,8 +1,8 @@
 /*
-  polar_coaster.cpp - Implements simple inverse kinematics for Grbl_ESP32
+  scara.cpp - Implements simple inverse kinematics for Grbl_ESP32
   Part of Grbl_ESP32
 
-  Copyright (c) 2019 Barton Dring @buildlog
+  Copyright (c) 2022 Tim Huang @NTUST
 
 
   Grbl is free software: you can redistribute it and/or modify
@@ -50,15 +50,14 @@
 
 */
 
-// This file is enabled by defining CUSTOM_CODE_FILENAME "polar_coaster.cpp"
-// in Machines/polar_coaster.h, thus causing this file to be included
+// This file is enabled by defining CUSTOM_CODE_FILENAME "scara.cpp"
+// in Machines/scara.h, thus causing this file to be included
 // from ../custom_code.cpp
 
-void  calc_polar(float* target_xyz, float* polar, float last_angle);
+void  scara_calcInverse(float* target_xyz, float* angle, float last_angle);
 float abs_angle(float ang);
 
-static float last_angle  = 0;
-static float last_radius = 0;
+static float last_angle[2]  = {0, 0};
 
 // this get called before homing
 // return false to complete normal home
@@ -69,9 +68,9 @@ bool kinematics_pre_homing(uint8_t cycle_mask) {
 
 void kinematics_post_homing() {
     // sync the X axis (do not need sync but make it for the fail safe)
-    last_radius = sys_position[X_AXIS];
+    last_angle[R1_AXIS] = sys_position[X_AXIS];
     // reset the internal angle value
-    last_angle = 0;
+    last_angle[R2_AXIS] = 0;
 }
 
 /*
@@ -89,11 +88,12 @@ void kinematics_post_homing() {
 bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     float    dx, dy, dz;          // distances in each cartesian axis
     float    p_dx, p_dy, p_dz;    // distances in each polar axis
-    float    dist, polar_dist;    // the distances in both systems...used to determine feed rate
+    float    dist, angle_dist;    // the distances in both systems...used to determine feed rate
     uint32_t segment_count;       // number of segments the move will be broken in to.
     float    seg_target[N_AXIS];  // The target of the current segment
-    float    polar[N_AXIS];       // target location in polar coordinates
+    float    angle[N_AXIS];       // target location in polar coordinates
     float    x_offset = gc_state.coord_system[X_AXIS] + gc_state.coord_offset[X_AXIS];  // offset from machine coordinate system
+    float    y_offset = gc_state.coord_system[Y_AXIS] + gc_state.coord_offset[Y_AXIS];  // offset from machine coordinate system
     float    z_offset = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS];  // offset from machine coordinate system
     //grbl_sendf(CLIENT_SERIAL, "Position: %4.2f %4.2f %4.2f \r\n", position[X_AXIS] - x_offset, position[Y_AXIS], position[Z_AXIS]);
     //grbl_sendf(CLIENT_SERIAL, "Target: %4.2f %4.2f %4.2f \r\n", target[X_AXIS] - x_offset, target[Y_AXIS], target[Z_AXIS]);
@@ -115,20 +115,20 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
         seg_target[X_AXIS] = position[X_AXIS] + (dx / float(segment_count) * segment) - x_offset;
         seg_target[Y_AXIS] = position[Y_AXIS] + (dy / float(segment_count) * segment);
         seg_target[Z_AXIS] = position[Z_AXIS] + (dz / float(segment_count) * segment) - z_offset;
-        calc_polar(seg_target, polar, last_angle);
+        scara_calcInverse(seg_target, angle, last_angle);
         // begin determining new feed rate
         // calculate move distance for each axis
-        p_dx                      = polar[RADIUS_AXIS] - last_radius;
-        p_dy                      = polar[POLAR_AXIS] - last_angle;
+        p_dx                      = angle[R1_AXIS] - last_angle[0];
+        p_dy                      = angle[R2_AXIS] - last_angle[1];
         p_dz                      = dz;
-        polar_dist                = sqrt((p_dx * p_dx) + (p_dy * p_dy) + (p_dz * p_dz));  // calculate the total move distance
+        angle_dist                = sqrt((p_dx * p_dx) + (p_dy * p_dy) + (p_dz * p_dz));  // calculate the total move distance
         float polar_rate_multiply = 1.0;                                                  // fail safe rate
-        if (polar_dist == 0 || dist == 0) {
+        if (angle_dist == 0 || dist == 0) {
             // prevent 0 feed rate and division by 0
             polar_rate_multiply = 1.0;  // default to same feed rate
         } else {
             // calc a feed rate multiplier
-            polar_rate_multiply = polar_dist / dist;
+            polar_rate_multiply = angle_dist / dist;
             if (polar_rate_multiply < 0.5) {
                 // prevent much slower speed
                 polar_rate_multiply = 0.5;
@@ -136,18 +136,19 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
         }
         pl_data->feed_rate *= polar_rate_multiply;  // apply the distance ratio between coord systems
         // end determining new feed rate
-        polar[RADIUS_AXIS] += x_offset;
-        polar[Z_AXIS] += z_offset;
+        angle[R1_AXIS] += x_offset;
+        angle[R2_AXIS] += y_offset;
+        angle[Z_AXIS]  += z_offset;
 
         // mc_line() returns false if a jog is cancelled.
         // In that case we stop sending segments to the planner.
-        if (!mc_line(polar, pl_data)) {
+        if (!mc_line(angle, pl_data)) {
             return false;
         }
 
         //
-        last_radius = polar[RADIUS_AXIS];
-        last_angle  = polar[POLAR_AXIS];
+        last_angle[R1_AXIS] = angle[R1_AXIS];
+        last_angle[R2_AXIS] = angle[R2_AXIS];
     }
     // TO DO don't need a feedrate for rapids
     return true;
@@ -167,8 +168,10 @@ converted = position with forward kinematics applied.
 
 */
 void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
-    cartesian[X_AXIS] = cos(radians(motors[Y_AXIS])) * motors[X_AXIS] * -1;
-    cartesian[Y_AXIS] = sin(radians(motors[Y_AXIS])) * motors[X_AXIS];
+    float angle_r1 = radians(motors[X_AXIS]);
+    float angle_r2 = radians(motors[Y_AXIS]);
+    cartesian[X_AXIS] = LENGTH_R1 * cos(angle_r1) + LENGTH_R2 * cos(angle_r1 + angle_r2);
+    cartesian[Y_AXIS] = LENGTH_R1 * sin(angle_r1) + LENGTH_R2 * sin(angle_r1 + angle_r2);
     cartesian[Z_AXIS] = motors[Z_AXIS];  // unchanged
 }
 
@@ -187,12 +190,21 @@ void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
 *   a long job.
 *
 */
-void calc_polar(float* target_xyz, float* polar, float last_angle) {
+void scara_calcInverse(float* target_xyz, float* angle, float* last_angle) {
     float delta_ang;  // the difference from the last and next angle
-    polar[RADIUS_AXIS] = hypot_f(target_xyz[X_AXIS], target_xyz[Y_AXIS]);
-    if (polar[RADIUS_AXIS] == 0) {
-        polar[POLAR_AXIS] = last_angle;  // don't care about angle at center
+    float x   = target_xyz[X_AXIS];
+    float y   = target_xyz[Y_AXIS];
+    float r2  = x * x + y * y;
+    float r   = sqrtf(r2);
+    float cos = (r2 - LENGTH_R1 * LENGTH_R1 - LENGTH_R2 * LENGTH_R2) / (2 * LENGTH_R1 * LENGTH_R2);
+    float sin1 = sqrtf(1 - cos * cos);
+    float sin2 = -sqrtf(1 - cos * cos);
+    float sin;
+
+    if (r == 0) {
+        angle[R1_AXIS] = last_angle[0];  // don't care about R1 at center
     } else {
+        angle[R1_AXIS] = atan2f(y,x) - atan2f(LENGTH_R2 * sin, LENGTH_R1 + LENGTH_R2 * cos);
         polar[POLAR_AXIS] = atan2(target_xyz[Y_AXIS], target_xyz[X_AXIS]) * 180.0 / M_PI;
         // no negative angles...we want the absolute angle not -90, use 270
         polar[POLAR_AXIS] = abs_angle(polar[POLAR_AXIS]);
