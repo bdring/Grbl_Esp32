@@ -376,16 +376,25 @@ namespace Motors {
 
         digitalWrite(_disable_pin, _disabled);
 
+        uint8_t _toff_value = 0;
+
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {
-            tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
+            _toff_value = TRINAMIC_TOFF_DISABLE;
         } else {
             if (_mode == TrinamicMode::StealthChop) {
-                tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
+                _toff_value = TRINAMIC_TOFF_STEALTHCHOP;
             } else {
-                tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
+                _toff_value = TRINAMIC_TOFF_COOLSTEP;
             }
         }
+
+        if (tmc2130) {
+            tmc2130->toff(_toff_value);
+        } else {
+            tmc5160->toff(_toff_value);
+        }
+
 #endif
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
