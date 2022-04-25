@@ -96,6 +96,9 @@ void pin_item(const char* name, int pin_number, bool active_low = false, bool pu
     if (pin_number == UNDEFINED_PIN) {
         return;
     }
+    if (pin_number >= GPIO_NUM_34 && pin_number <= GPIO_NUM_39) {
+        pullup = false;
+    }
     item(name, pinspec(pin_number, active_low, pullup));
 }
 
