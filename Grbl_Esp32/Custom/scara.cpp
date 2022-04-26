@@ -200,25 +200,26 @@ void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
 */
 KinematicError scara_calcInverse(float* target_xyz, float* joint, float* last_angle) {
     float delta_ang;  // the difference from the last and next angle
-    float x   = target_xyz[X_AXIS];
-    float y   = target_xyz[Y_AXIS];
-    float r2  = x * x + y * y;
-    float r   = sqrt(r2);
-    float cos = (r2 - LENGTH_R1 * LENGTH_R1 - LENGTH_R2 * LENGTH_R2) / (2 * LENGTH_R1 * LENGTH_R2);
-    float sin1 = sqrt(1 - cos * cos);
-    float sin2 = -sqrt(1 - cos * cos);
-    float sin;
+    float angle[N_AXIS];
+    float x     = target_xyz[X_AXIS];
+    float y     = target_xyz[Y_AXIS];
+    float r2    = x * x + y * y;
+    float r     = sqrt(r2);
+    float theta = atan2(y,x);
+    float cos   = (r2 - LENGTH_R1 * LENGTH_R1 - LENGTH_R2 * LENGTH_R2) / (2 * LENGTH_R1 * LENGTH_R2);
+    float sin   = sqrt(1 - cos * cos);
 
     if (r == 0) {
-        joint[R1_AXIS] = last_angle[R1_AXIS];  // don't care about R1 at center
+        angle[R1_AXIS] = last_angle[R1_AXIS];  // don't care about R1 at center
+        angle[R2_AXIS] = -last_angle[R1_AXIS];
+        return KinematicError::NONE;
     } else {
-        joint[R1_AXIS] = atan2(y,x) - atan2(LENGTH_R2 * sin, LENGTH_R1 + LENGTH_R2 * cos);
-        joint[R2_AXIS] = atan2(target_xyz[Y_AXIS], target_xyz[X_AXIS]) * 180.0 / M_PI;
+        angle[R1_AXIS] = atan2(y,x) - atan2(LENGTH_R2 * sin, LENGTH_R1 + LENGTH_R2 * cos);
+        angle[R2_AXIS] = theta + atan2(sin, cos);
         // no negative angles...we want the absolute angle not -90, use 270
-        joint[R1_AXIS] = abs_angle(angle[R1_AXIS]);
+        angle[R1_AXIS] = abs_angle(joint[R1_AXIS]);
     }
-    angle[Z_AXIS] = target_xyz[Z_AXIS];  // Z is unchanged
-    delta_ang     = angle[R1_AXIS] - abs_angle(last_angle[0]);
+    delta_ang = angle[R1_AXIS] - abs_angle(last_angle[0]);
     // if the delta is above 180 degrees it means we are crossing the 0 degree line
     if (fabs(delta_ang) <= 180.0)
         angle[R1_AXIS] = last_angle[0] + delta_ang;
@@ -229,6 +230,8 @@ KinematicError scara_calcInverse(float* target_xyz, float* joint, float* last_an
         } else
             angle[R2_AXIS] = last_angle[0] + delta_ang + 360.0;
     }
+
+    return 0;
 }
 
 // Return a 0-360 angle ... fix above 360 and below zero
