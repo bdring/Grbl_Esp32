@@ -262,12 +262,16 @@ const char* trinamicModes(TrinamicMode mode) {
     switch (mode) {
         case TrinamicMode::None:
             ret = "ERROR";
+            break;
         case TrinamicMode::CoolStep:
             ret = "CoolStep";
+            break;
         case TrinamicMode::StealthChop:
             ret = "StealthChop";
+            break;
         case TrinamicMode::StallGuard:
             ret = "Stallguard";
+            break;
     }
     return ret;
 }
