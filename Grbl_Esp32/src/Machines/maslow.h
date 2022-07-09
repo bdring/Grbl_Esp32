@@ -71,6 +71,7 @@
 
 #include <TLC59711.h>
 #include <MotorUnit.h>
+#include <IndicatorLED.h>
 
 // Maslow specific defines
 #define NUM_TLC59711 1

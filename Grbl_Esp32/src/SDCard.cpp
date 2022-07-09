@@ -151,7 +151,7 @@ SDState get_sd_state(bool refresh) {
     sd_state = SDState::NotPresent;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
-    if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
+    if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, 1000000, "/sd", 2)) {
         if (SD.cardSize() > 0) {
             sd_state = SDState::Idle;
         }

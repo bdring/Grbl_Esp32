@@ -54,6 +54,8 @@ MotorUnit axisTR(&tlc, TR_FORWARD, TR_BACKWARD, TR_ADC, TR_CS, grbl_sendf);
 MotorUnit axisTL(&tlc, TL_FORWARD, TL_BACKWARD, TL_ADC, TL_CS, grbl_sendf);
 MotorUnit axisBL(&tlc, BL_FORWARD, BL_BACKWARD, BL_ADC, BL_CS, grbl_sendf);
 
+IndicatorLED indicators(&tlc, grbl_sendf);
+
 //The xy coordinates of each of the anchor points
 float tlX;
 float tlY;
@@ -106,15 +108,15 @@ void machine_init()
     axisTLHomed = false;
 
     tlX = -8.339;
-    tlY = 1828.17;
+    tlY = 2209;
     tlZ = 172;
-    trX = 2870.62;
-    trY = 1829.05;
+    trX = 3505; 
+    trY = 2209;
     trZ = 111;
     blX = 0;
     blY = 0;
     blZ = 96;
-    brX = 2891.36;
+    brX = 3505;
     brY = 0;
     brZ = 131;
     
@@ -714,7 +716,7 @@ bool user_defined_homing(uint8_t cycle_mask)
 
 #ifdef USE_KINEMATICS
 /*
-  Inverse Kinematics converts X,Y,Z cartesian coordinate to the steps
+  Inverse Kinematics converts X,Y,Z Cartesian coordinate to the steps
   on your "joint" motors.  It requires the following three functions:
 */
 
