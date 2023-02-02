@@ -36,7 +36,7 @@ def convertMachine(baseName, verbose=True, extraArgs=None):
         if proc.returncode:
             print('Converter failed with exit code', proc.returncode)
             with open(out_filename, 'r') as f:
-            print(f.read())
+                print(f.read())
         else:
             print("FluidNC Configuration written to", out_filename)
         return proc.returncode
