@@ -56,7 +56,7 @@ jobs:
 
       - name: Report errors
         if: failure()
-        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae
+        uses: peter-evans/create-or-update-comment
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
@@ -69,7 +69,7 @@ jobs:
             If you cannot resolve the problem, please contact us on Discord - https://discord.gg/MDsRDeNsTE
 
       - name: Add comment
-        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae
+        uses: peter-evans/create-or-update-comment
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
