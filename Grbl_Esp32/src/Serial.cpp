@@ -63,19 +63,40 @@
 // testing is complete.
 // #define REVERT_TO_ARDUINO_SERIAL
 
-portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 
 static TaskHandle_t clientCheckTaskHandle = 0;
 
 WebUI::InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
 
+//Semaphore to protect data exchange when multithreading
+SemaphoreHandle_t bufferSemaphore;
+void createSemaphore(){
+    bufferSemaphore = xSemaphoreCreateMutex();
+    xSemaphoreGive( ( bufferSemaphore) );
+}
+
+// Lock the variable indefinietly. ( wait for it to be accessible )
+BaseType_t lockVariable(){
+    return xSemaphoreTake(bufferSemaphore, portMAX_DELAY);
+}
+
+// give back the semaphore.
+void unlockVariable(){
+    xSemaphoreGive(bufferSemaphore);
+}
+
 // Returns the number of bytes available in a client buffer.
 uint8_t client_get_rx_buffer_available(uint8_t client) {
+	uint8_t avalaiblebuffer = 0;
+	if (lockVariable() == pdTRUE ) {
 #ifdef REVERT_TO_ARDUINO_SERIAL
-    return 128 - Serial.available();
+		avalaiblebuffer = 128 - Serial.available();
 #else
-    return 128 - Uart0.available();
+		avalaiblebuffer = 128 - Uart0.available();
 #endif
+		unlockVariable();
+	}
+	return avalaiblebuffer;
     //    return client_buffer[client].availableforwrite();
 }
 
@@ -101,7 +122,7 @@ void client_init() {
     // For a 2000-word stack, uxTaskGetStackHighWaterMark reports 288 words available
     xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
 #endif
-
+	createSemaphore();
 #ifdef REVERT_TO_ARDUINO_SERIAL
     Serial.begin(BAUD_RATE, SERIAL_8N1, 3, 1, false);
     client_reset_read_buffer(CLIENT_ALL);
@@ -182,9 +203,10 @@ void clientCheckTask(void* pvParameters) {
 #if defined(ENABLE_SD_CARD)
                 if (get_sd_state(false) < SDState::Busy) {
 #endif  //ENABLE_SD_CARD
-                    vTaskEnterCritical(&myMutex);
+					if (lockVariable() == pdTRUE ) {
                     client_buffer[client].write(data);
-                    vTaskExitCritical(&myMutex);
+					unlockVariable();
+					}
 #if defined(ENABLE_SD_CARD)
                 } else {
                     if (data == '\r' || data == '\n') {
@@ -217,16 +239,21 @@ void clientCheckTask(void* pvParameters) {
 void client_reset_read_buffer(uint8_t client) {
     for (uint8_t client_num = 0; client_num < CLIENT_COUNT; client_num++) {
         if (client == client_num || client == CLIENT_ALL) {
-            client_buffer[client_num].begin();
+			if (lockVariable() == pdTRUE ) {
+				client_buffer[client_num].begin();
+				unlockVariable();
+			}
         }
     }
 }
 
 // Fetches the first byte in the client read buffer. Called by protocol loop.
 int client_read(uint8_t client) {
-    vTaskEnterCritical(&myMutex);
-    int data = client_buffer[client].read();
-    vTaskExitCritical(&myMutex);
+	int data = 0;
+	if (lockVariable() == pdTRUE ) {
+		data = client_buffer[client].read();
+		unlockVariable();
+	}
     return data;
 }
 
