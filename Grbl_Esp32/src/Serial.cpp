@@ -87,16 +87,16 @@ void unlockVariable(){
 
 // Returns the number of bytes available in a client buffer.
 uint8_t client_get_rx_buffer_available(uint8_t client) {
-	uint8_t avalaiblebuffer = 0;
+	uint8_t availablebuffer = 0;
 	if (lockVariable() == pdTRUE ) {
 #ifdef REVERT_TO_ARDUINO_SERIAL
-		avalaiblebuffer = 128 - Serial.available();
+		availablebuffer = 128 - Serial.available();
 #else
-		avalaiblebuffer = 128 - Uart0.available();
+		availablebuffer = 128 - Uart0.available();
 #endif
 		unlockVariable();
 	}
-	return avalaiblebuffer;
+	return availablebuffer;
     //    return client_buffer[client].availableforwrite();
 }
 
