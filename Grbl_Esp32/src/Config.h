@@ -56,7 +56,7 @@ Some features should not be changed. See notes below.
 // For example B1101 will invert the function of the Reset pin.
 #define INVERT_CONTROL_PIN_MASK B00001111
 
-// #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
+#define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
 #define USE_RMT_STEPS
@@ -202,7 +202,7 @@ enum class Cmd : uint8_t {
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.
-#define HOMING_INIT_LOCK  // Comment to disable
+//#define HOMING_INIT_LOCK  // Comment to disable
 
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
@@ -264,7 +264,7 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // will be applied to all of them. This is useful when a user has a mixed set of limit pins with both
 // normally-open(NO) and normally-closed(NC) switches installed on their machine.
 // NOTE: PLEASE DO NOT USE THIS, unless you have a situation that needs it.
-// #define INVERT_LIMIT_PIN_MASK (bit(X_AXIS)|bit(Y_AXIS)) // Default disabled. Uncomment to enable.
+#define INVERT_LIMIT_PIN_MASK (bit(X_AXIS)|bit(Y_AXIS)|bit(Z_AXIS)) // Default disabled. Uncomment to enable.
 
 // Inverts the selected coolant pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
 // for some pre-built electronic boards.
@@ -486,7 +486,7 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // A simple software debouncing feature for hard limit switches. When enabled, the limit
 // switch interrupt unblock a waiting task which will recheck the limit switch pins after
 // a short delay. Default disabled
-//#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
+#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
 const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
@@ -523,7 +523,7 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // Some senders may not be able to parse anything different from the original set
 // You can still set these like $33=5000, but you cannot read them back.
 // Default is off to limit support issues...you can enable here or in your machine definition file
-// #define SHOW_EXTENDED_SETTINGS
+#define SHOW_EXTENDED_SETTINGS
 
 // Writing to non-volatile storage (NVS) can take a long time and interfere with timely instruction
 // execution, causing problems for the stepper ISRs and serial comm ISRs and subsequent loss of
@@ -590,19 +590,31 @@ const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge 
 // Enables a piecewise linear model of the spindle PWM/speed output. Requires a solution by the
 // 'fit_nonlinear_spindle.py' script in the /doc/script folder of the repo. See file comments
 // on how to gather spindle data and run the script to generate a solution.
-// #define ENABLE_PIECEWISE_LINEAR_SPINDLE  // Default disabled. Uncomment to enable.
+//#define ENABLE_PIECEWISE_LINEAR_SPINDLE  // Not implemented yet
 
 // N_PIECES, RPM_MAX, RPM_MIN, RPM_POINTxx, and RPM_LINE_XX constants are all set and given by
 // the 'fit_nonlinear_spindle.py' script solution. Used only when ENABLE_PIECEWISE_LINEAR_SPINDLE
 // is enabled. Make sure the constant values are exactly the same as the script solution.
 // NOTE: When N_PIECES < 4, unused RPM_LINE and RPM_POINT defines are not required and omitted.
+
+
 /*
-#define N_PIECES 4  // Integer (1-4). Number of piecewise lines used in script solution.
-#define RPM_MAX  11686.4  // Max RPM of model. $30 > RPM_MAX will be limited to RPM_MAX.
-#define RPM_MIN  202.5    // Min RPM of model. $31 < RPM_MIN will be limited to RPM_MIN.
+#define N_PIECES 4
+#define RPM_MAX 24162.9
+#define RPM_MIN 118.4
+#define RPM_POINT12 3177.2
+#define RPM_POINT23 13581.6
+#define RPM_POINT34 21467.2
+#define RPM_LINE_A1 5.878084e-01
+#define RPM_LINE_B1 6.759473e+01
+#define RPM_LINE_A2 9.803514e-01
+#define RPM_LINE_B2 1.314789e+03
+#define RPM_LINE_A3 1.014510e+00
+#define RPM_LINE_B3 1.778715e+03
+#define RPM_LINE_A4 1.483485e+00
+#define RPM_LINE_B4 1.184633e+04
 */
 
-const int N_PIECES = 3;
-
-const double RPM_MAX = 23935.2;
-const double RPM_MIN = 2412.2;
+//const int N_PIECES = 4;
+//const double RPM_MAX = 24513.2;
+//const double RPM_MIN = 125.2;
