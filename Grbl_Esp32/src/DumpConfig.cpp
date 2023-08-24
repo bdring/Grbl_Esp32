@@ -173,9 +173,10 @@ void print_rc_servo(RcServo* m, int axis, int gang, const char* name = "rc_servo
     print_servo(m, axis, gang, name);
     item("cal_min", m->rc_servo_cal_min->get());
     item("cal_max", m->rc_servo_cal_max->get());
-    pin_item("pwm_pin", m->_pwm_pin, false);
+    pin_item("output_pin", m->_pwm_pin, false);
     item("min_pulse_us", SERVO_MIN_PULSE);
     item("max_pulse_us", SERVO_MAX_PULSE);
+    item("pwm_hz", SERVO_PULSE_FREQ);
 
     end_section();
 }
