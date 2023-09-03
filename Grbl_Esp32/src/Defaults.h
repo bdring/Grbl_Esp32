@@ -39,7 +39,7 @@
 
 // Grbl generic default settings. Should work across different machines.
 #ifndef DEFAULT_STEP_PULSE_MICROSECONDS
-#    define DEFAULT_STEP_PULSE_MICROSECONDS 3  // $0
+#    define DEFAULT_STEP_PULSE_MICROSECONDS 5  // $0
 #endif
 
 #ifndef DEFAULT_STEP_ENABLE_DELAY
@@ -51,7 +51,7 @@
 #endif
 
 #ifndef DEFAULT_STEPPER_IDLE_LOCK_TIME
-#    define DEFAULT_STEPPER_IDLE_LOCK_TIME 250  // $1 msec (0-254, 255 keeps steppers enabled)
+#    define DEFAULT_STEPPER_IDLE_LOCK_TIME 255  // $1 msec (0-254, 255 keeps steppers enabled)
 #endif
 
 #ifndef DEFAULT_STEPPING_INVERT_MASK
@@ -71,7 +71,7 @@
 #endif
 
 #ifndef DEFAULT_INVERT_PROBE_PIN
-#    define DEFAULT_INVERT_PROBE_PIN 0  // $6 boolean
+#    define DEFAULT_INVERT_PROBE_PIN 1  // $6 boolean
 #endif
 
 #ifndef DEFAULT_STATUS_REPORT_MASK
@@ -99,11 +99,11 @@
 #endif
 
 #ifndef DEFAULT_HARD_LIMIT_ENABLE
-#    define DEFAULT_HARD_LIMIT_ENABLE 0  // $21 false
+#    define DEFAULT_HARD_LIMIT_ENABLE 1  // $21 false
 #endif
 
 #ifndef DEFAULT_HOMING_ENABLE
-#    define DEFAULT_HOMING_ENABLE 0  // $22 false
+#    define DEFAULT_HOMING_ENABLE 1  // $22 false
 #endif
 
 #ifndef DEFAULT_HOMING_DIR_MASK
@@ -123,7 +123,7 @@
 #endif
 
 #ifndef DEFAULT_HOMING_PULLOFF
-#    define DEFAULT_HOMING_PULLOFF 1.0  // $27 mm
+#    define DEFAULT_HOMING_PULLOFF 3.0  // $27 mm
 #endif
 
 #ifndef DEFAULT_HOMING_SQUARED_AXES
@@ -156,11 +156,11 @@
 
 // ======== SPINDLE STUFF ====================
 #ifndef SPINDLE_TYPE
-#    define SPINDLE_TYPE SpindleType::NONE
+#    define SPINDLE_TYPE SpindleType::PWM
 #endif
 
 #ifndef DEFAULT_SPINDLE_RPM_MIN          // $31
-#    define DEFAULT_SPINDLE_RPM_MIN 0.0  // rpm
+#    define DEFAULT_SPINDLE_RPM_MIN 1.0  // rpm
 #endif
 
 #ifndef DEFAULT_LASER_MODE        // $32
@@ -172,11 +172,11 @@
 #endif
 
 #ifndef DEFAULT_SPINDLE_RPM_MAX             // $30
-#    define DEFAULT_SPINDLE_RPM_MAX 1000.0  // rpm
+#    define DEFAULT_SPINDLE_RPM_MAX 24000.0  // rpm
 #endif
 
 #ifndef DEFAULT_SPINDLE_FREQ
-#    define DEFAULT_SPINDLE_FREQ 5000.0  // $33 Hz (extended set)
+#    define DEFAULT_SPINDLE_FREQ 1000.0  // $33 Hz (extended set)
 #endif
 
 #ifndef DEFAULT_SPINDLE_OFF_VALUE
@@ -259,13 +259,13 @@
 // =========== 	AXIS RESOLUTION ======
 
 #ifndef DEFAULT_X_STEPS_PER_MM
-#    define DEFAULT_X_STEPS_PER_MM 100.0
+#    define DEFAULT_X_STEPS_PER_MM 60.0
 #endif
 #ifndef DEFAULT_Y_STEPS_PER_MM
-#    define DEFAULT_Y_STEPS_PER_MM 100.0
+#    define DEFAULT_Y_STEPS_PER_MM 60.0
 #endif
 #ifndef DEFAULT_Z_STEPS_PER_MM
-#    define DEFAULT_Z_STEPS_PER_MM 100.0
+#    define DEFAULT_Z_STEPS_PER_MM 400.0
 #endif
 #ifndef DEFAULT_A_STEPS_PER_MM
 #    define DEFAULT_A_STEPS_PER_MM 100.0
@@ -280,10 +280,10 @@
 // ============ AXIS MAX SPPED =========
 
 #ifndef DEFAULT_X_MAX_RATE
-#    define DEFAULT_X_MAX_RATE 1000.0  // mm/min
+#    define DEFAULT_X_MAX_RATE 2500.0  // mm/min
 #endif
 #ifndef DEFAULT_Y_MAX_RATE
-#    define DEFAULT_Y_MAX_RATE 1000.0  // mm/min
+#    define DEFAULT_Y_MAX_RATE 2500.0  // mm/min
 #endif
 #ifndef DEFAULT_Z_MAX_RATE
 #    define DEFAULT_Z_MAX_RATE 1000.0  // mm/min
@@ -302,13 +302,13 @@
 #define SEC_PER_MIN_SQ (60.0 * 60.0)  // Seconds Per Minute Squared, for acceleration conversion
 // Default accelerations are expressed in mm/sec^2
 #ifndef DEFAULT_X_ACCELERATION
-#    define DEFAULT_X_ACCELERATION 200.0
+#    define DEFAULT_X_ACCELERATION 80.0
 #endif
 #ifndef DEFAULT_Y_ACCELERATION
-#    define DEFAULT_Y_ACCELERATION 200.0
+#    define DEFAULT_Y_ACCELERATION 80.0
 #endif
 #ifndef DEFAULT_Z_ACCELERATION
-#    define DEFAULT_Z_ACCELERATION 200.0
+#    define DEFAULT_Z_ACCELERATION 50.0
 #endif
 #ifndef DEFAULT_A_ACCELERATION
 #    define DEFAULT_A_ACCELERATION 200.0
@@ -323,13 +323,13 @@
 // ========= AXIS MAX TRAVEL ============
 
 #ifndef DEFAULT_X_MAX_TRAVEL
-#    define DEFAULT_X_MAX_TRAVEL 300.0  // $130 mm NOTE: Must be a positive value.
+#    define DEFAULT_X_MAX_TRAVEL 550.0  // $130 mm NOTE: Must be a positive value.
 #endif
 #ifndef DEFAULT_Y_MAX_TRAVEL
-#    define DEFAULT_Y_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#    define DEFAULT_Y_MAX_TRAVEL 570.0  // mm NOTE: Must be a positive value.
 #endif
 #ifndef DEFAULT_Z_MAX_TRAVEL
-#    define DEFAULT_Z_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#    define DEFAULT_Z_MAX_TRAVEL 100.0  // mm NOTE: Must be a positive value.
 #endif
 #ifndef DEFAULT_A_MAX_TRAVEL
 #    define DEFAULT_A_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
@@ -386,43 +386,43 @@
 
 // ========== Motor current (SPI Drivers ) =============
 #ifndef DEFAULT_X_CURRENT
-#    define DEFAULT_X_CURRENT 0.8  // $140 current in amps (extended set)
+#    define DEFAULT_X_CURRENT 0.25  // $140 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Y_CURRENT
-#    define DEFAULT_Y_CURRENT 0.8  // $141 current in amps (extended set)
+#    define DEFAULT_Y_CURRENT 0.25  // $141 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Z_CURRENT
-#    define DEFAULT_Z_CURRENT 0.8  // $142 current in amps (extended set)
+#    define DEFAULT_Z_CURRENT 0.25  // $142 current in amps (extended set)
 #endif
 #ifndef DEFAULT_A_CURRENT
-#    define DEFAULT_A_CURRENT 0.8  // $143 current in amps (extended set)
+#    define DEFAULT_A_CURRENT 0.25  // $143 current in amps (extended set)
 #endif
 #ifndef DEFAULT_B_CURRENT
-#    define DEFAULT_B_CURRENT 0.8  // $144 current in amps (extended set)
+#    define DEFAULT_B_CURRENT 0.25  // $144 current in amps (extended set)
 #endif
 #ifndef DEFAULT_C_CURRENT
-#    define DEFAULT_C_CURRENT 0.8  // $145 current in amps (extended set)
+#    define DEFAULT_C_CURRENT 0.25  // $145 current in amps (extended set)
 #endif
 
 // ========== Motor hold current (SPI Drivers ) =============
 
 #ifndef DEFAULT_X_HOLD_CURRENT
-#    define DEFAULT_X_HOLD_CURRENT 0.4  // $150 current in amps (extended set)
+#    define DEFAULT_X_HOLD_CURRENT 0.125  // $150 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Y_HOLD_CURRENT
-#    define DEFAULT_Y_HOLD_CURRENT 0.4  // $151 current in amps (extended set)
+#    define DEFAULT_Y_HOLD_CURRENT 0.125  // $151 current in amps (extended set)
 #endif
 #ifndef DEFAULT_Z_HOLD_CURRENT
-#    define DEFAULT_Z_HOLD_CURRENT 0.4  // $152 current in amps (extended set)
+#    define DEFAULT_Z_HOLD_CURRENT 0.125  // $152 current in amps (extended set)
 #endif
 #ifndef DEFAULT_A_HOLD_CURRENT
-#    define DEFAULT_A_HOLD_CURRENT 0.4  // $153 current in amps (extended set)
+#    define DEFAULT_A_HOLD_CURRENT 0.125  // $153 current in amps (extended set)
 #endif
 #ifndef DEFAULT_B_HOLD_CURRENT
-#    define DEFAULT_B_HOLD_CURRENT 0.4  // $154 current in amps (extended set)
+#    define DEFAULT_B_HOLD_CURRENT 0.125  // $154 current in amps (extended set)
 #endif
 #ifndef DEFAULT_C_HOLD_CURRENT
-#    define DEFAULT_C_HOLD_CURRENT 0.4  // $154 current in amps (extended set)
+#    define DEFAULT_C_HOLD_CURRENT 0.125  // $154 current in amps (extended set)
 #endif
 
 // ========== Microsteps (SPI Drivers ) ================
