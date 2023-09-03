@@ -85,6 +85,23 @@ void unlockVariable(){
     xSemaphoreGive(bufferSemaphore);
 }
 
+//Semaphore to protect the TelnetServer class which are not thread safe (see wifiCient class)
+SemaphoreHandle_t telnetSemaphore;
+void createtelnetSemaphore(){
+    telnetSemaphore = xSemaphoreCreateMutex();
+    xSemaphoreGive( ( telnetSemaphore) );
+}
+
+// Lock the variable
+BaseType_t locktelnetVariable(){
+    return xSemaphoreTake(telnetSemaphore, ( TickType_t ) 500/*portMAX_DELAY*/);
+}
+
+// give back the semaphore.
+void unlocktelnetVariable(){
+    xSemaphoreGive(telnetSemaphore);
+}
+
 // Returns the number of bytes available in a client buffer.
 uint8_t client_get_rx_buffer_available(uint8_t client) {
 	uint8_t availablebuffer = 0;
@@ -123,6 +140,7 @@ void client_init() {
     xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
 #endif
 	createSemaphore();
+	createtelnetSemaphore();
 #ifdef REVERT_TO_ARDUINO_SERIAL
     Serial.begin(BAUD_RATE, SERIAL_8N1, 3, 1, false);
     client_reset_read_buffer(CLIENT_ALL);
@@ -219,7 +237,10 @@ void clientCheckTask(void* pvParameters) {
         }  // if something available
         WebUI::COMMANDS::handle();
 #ifdef ENABLE_WIFI
+		if (locktelnetVariable() == pdTRUE ) {
         WebUI::wifi_config.handle();
+		unlocktelnetVariable();
+		}
 #endif
 #ifdef ENABLE_BLUETOOTH
         WebUI::bt_config.handle();
@@ -390,7 +411,10 @@ void client_write(uint8_t client, const char* text) {
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
     if (client == CLIENT_TELNET || client == CLIENT_ALL) {
+		if (locktelnetVariable() == pdTRUE ) {
         WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
+		unlocktelnetVariable();
+		}
     }
 #endif
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
