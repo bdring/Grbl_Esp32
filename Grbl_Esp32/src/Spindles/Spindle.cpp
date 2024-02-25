@@ -39,6 +39,7 @@
 #include "BESCSpindle.h"
 #include "10vSpindle.h"
 #include "YL620Spindle.h"
+#include "H100Spindle.h"
 #include "TecoL510.h"
 
 namespace Spindles {
@@ -55,6 +56,7 @@ namespace Spindles {
     BESC     besc;
     _10v     _10v;
     YL620    yl620;
+    H100     h100;
     L510     l510;
 
     void Spindle::select() {
@@ -85,6 +87,9 @@ namespace Spindles {
                 break;
             case SpindleType::YL620:
                 spindle = &yl620;
+                break;
+            case SpindleType::H100:
+                spindle = &h100;
                 break;
             case SpindleType::L510:
                 spindle = &l510;
